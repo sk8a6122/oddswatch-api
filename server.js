@@ -20,19 +20,21 @@ app.get("/goalie/:teamId/:season", async (req, res) => {
   }
 });
 
-// H2H schedule for a team
+// H2H schedule for a team — fetches full season
 app.get("/schedule/:abbrev/:season", async (req, res) => {
   try {
     const { abbrev, season } = req.params;
-    const url = `${NHL_BASE}/club-schedule-season/${abbrev}/${season}`;
-    const data = await fetch(url).then(r => r.json());
 
-    // Also try fetching past schedule to get full season
-    const pastUrl = `${NHL_BASE}/club-schedule-season/${abbrev}/now`;
-    const pastData = await fetch(pastUrl).then(r => r.json()).catch(() => ({ games: [] }));
+    // Fetch full season schedule
+    const seasonUrl = `${NHL_BASE}/club-schedule-season/${abbrev}/${season}`;
+    const seasonData = await fetch(seasonUrl).then(r => r.json()).catch(() => ({ games: [] }));
 
-    // Merge both, deduplicate by game id
-    const allGames = [...(data.games || []), ...(pastData.games || [])];
+    // Also fetch current week in case season endpoint is incomplete
+    const nowUrl = `${NHL_BASE}/club-schedule-season/${abbrev}/now`;
+    const nowData = await fetch(nowUrl).then(r => r.json()).catch(() => ({ games: [] }));
+
+    // Merge and deduplicate by game id
+    const allGames = [...(seasonData.games || []), ...(nowData.games || [])];
     const seen = new Set();
     const unique = allGames.filter(g => {
       if (seen.has(g.id)) return false;
@@ -45,6 +47,7 @@ app.get("/schedule/:abbrev/:season", async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
+
 // Health check
 app.get("/", (req, res) => res.json({ status: "OddsWatch API running" }));
 
