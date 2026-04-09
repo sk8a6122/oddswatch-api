@@ -70,11 +70,20 @@ app.get("/mlb/h2h/:awayId/:homeId", async (req, res) => {
   try {
     const { awayId, homeId } = req.params;
     const season = new Date().getFullYear();
-    const url = `${MLB_BASE}/schedule?sportId=1&season=${season}&teamId=${awayId}&opponent=${homeId}&gameType=R&hydrate=linescore`;
+    const url = `${MLB_BASE}/schedule?sportId=1&season=${season}&teamId=${awayId}&opponent=${homeId}&gameType=R&hydrate=linescore,team`;
     const data = await fetch(url).then(r => r.json());
     const games = (data.dates || [])
       .flatMap(d => d.games || [])
-      .filter(g => g.status?.abstractGameState === "Final")
+      .filter(g => {
+        const finished = g.status?.abstractGameState === "Final";
+        const awayTeamId = g.teams?.away?.team?.id;
+        const homeTeamId = g.teams?.home?.team?.id;
+        const correctMatchup = (
+          (String(awayTeamId) === String(awayId) && String(homeTeamId) === String(homeId)) ||
+          (String(awayTeamId) === String(homeId) && String(homeTeamId) === String(awayId))
+        );
+        return finished && correctMatchup;
+      })
       .slice(-5);
     res.json({ games });
   } catch (e) {
