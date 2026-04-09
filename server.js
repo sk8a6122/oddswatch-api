@@ -90,7 +90,18 @@ app.get("/mlb/h2h/:awayId/:homeId", async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
-
+// NHL player props for a specific game
+app.get("/props/nhl/:gameId", async (req, res) => {
+  try {
+    const { gameId } = req.params;
+    const apiKey = process.env.ODDS_API_KEY || req.query.apiKey;
+    const url = `https://api.the-odds-api.com/v4/sports/icehockey_nhl/events/${gameId}/odds?apiKey=${apiKey}&regions=us&markets=player_goal_scorer_anytime,player_anytime_assist,player_shots_on_goal&oddsFormat=decimal`;
+    const data = await fetch(url).then(r => r.json());
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 // Health check
 app.get("/", (req, res) => res.json({ status: "OddsWatch API running" }));
 
