@@ -7,6 +7,7 @@ app.use(cors());
 
 const NHL_BASE = "https://api-web.nhle.com/v1";
 const NHL_STATS = "https://api.nhle.com/stats/rest/en";
+const MLB_BASE = "https://statsapi.mlb.com/api/v1";
 
 // Goalie stats for a team
 app.get("/goalie/:teamId/:season", async (req, res) => {
@@ -20,20 +21,12 @@ app.get("/goalie/:teamId/:season", async (req, res) => {
   }
 });
 
-// H2H schedule for a team — fetches full season
+// NHL H2H schedule
 app.get("/schedule/:abbrev/:season", async (req, res) => {
   try {
     const { abbrev, season } = req.params;
-
-    // Fetch full season schedule
-    const seasonUrl = `${NHL_BASE}/club-schedule-season/${abbrev}/${season}`;
-    const seasonData = await fetch(seasonUrl).then(r => r.json()).catch(() => ({ games: [] }));
-
-    // Also fetch current week in case season endpoint is incomplete
-    const nowUrl = `${NHL_BASE}/club-schedule-season/${abbrev}/now`;
-    const nowData = await fetch(nowUrl).then(r => r.json()).catch(() => ({ games: [] }));
-
-    // Merge and deduplicate by game id
+    const seasonData = await fetch(`${NHL_BASE}/club-schedule-season/${abbrev}/${season}`).then(r => r.json()).catch(() => ({ games: [] }));
+    const nowData = await fetch(`${NHL_BASE}/club-schedule-season/${abbrev}/now`).then(r => r.json()).catch(() => ({ games: [] }));
     const allGames = [...(seasonData.games || []), ...(nowData.games || [])];
     const seen = new Set();
     const unique = allGames.filter(g => {
@@ -41,8 +34,49 @@ app.get("/schedule/:abbrev/:season", async (req, res) => {
       seen.add(g.id);
       return true;
     });
-
     res.json({ games: unique });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// MLB today's games with probable pitchers
+app.get("/mlb/games", async (req, res) => {
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const url = `${MLB_BASE}/schedule?sportId=1&date=${today}&hydrate=probablePitcher(stats),team,linescore`;
+    const data = await fetch(url).then(r => r.json());
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// MLB pitcher stats by player ID
+app.get("/mlb/pitcher/:playerId", async (req, res) => {
+  try {
+    const { playerId } = req.params;
+    const season = new Date().getFullYear();
+    const url = `${MLB_BASE}/people/${playerId}/stats?stats=season&season=${season}&group=pitching`;
+    const data = await fetch(url).then(r => r.json());
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// MLB H2H - last 5 games between two teams this season
+app.get("/mlb/h2h/:awayId/:homeId", async (req, res) => {
+  try {
+    const { awayId, homeId } = req.params;
+    const season = new Date().getFullYear();
+    const url = `${MLB_BASE}/schedule?sportId=1&season=${season}&teamId=${awayId}&opponent=${homeId}&gameType=R&hydrate=linescore`;
+    const data = await fetch(url).then(r => r.json());
+    const games = (data.dates || [])
+      .flatMap(d => d.games || [])
+      .filter(g => g.status?.abstractGameState === "Final")
+      .slice(-5);
+    res.json({ games });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
