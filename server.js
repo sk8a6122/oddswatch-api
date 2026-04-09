@@ -9,7 +9,6 @@ const NHL_BASE = "https://api-web.nhle.com/v1";
 const NHL_STATS = "https://api.nhle.com/stats/rest/en";
 const MLB_BASE = "https://statsapi.mlb.com/api/v1";
 
-// Goalie stats for a team
 app.get("/goalie/:teamId/:season", async (req, res) => {
   try {
     const { teamId, season } = req.params;
@@ -21,7 +20,6 @@ app.get("/goalie/:teamId/:season", async (req, res) => {
   }
 });
 
-// NHL H2H schedule
 app.get("/schedule/:abbrev/:season", async (req, res) => {
   try {
     const { abbrev, season } = req.params;
@@ -40,7 +38,6 @@ app.get("/schedule/:abbrev/:season", async (req, res) => {
   }
 });
 
-// MLB today's games with probable pitchers
 app.get("/mlb/games", async (req, res) => {
   try {
     const today = new Date().toISOString().slice(0, 10);
@@ -52,7 +49,6 @@ app.get("/mlb/games", async (req, res) => {
   }
 });
 
-// MLB pitcher stats by player ID
 app.get("/mlb/pitcher/:playerId", async (req, res) => {
   try {
     const { playerId } = req.params;
@@ -65,7 +61,6 @@ app.get("/mlb/pitcher/:playerId", async (req, res) => {
   }
 });
 
-// MLB H2H - last 5 games between two teams this season
 app.get("/mlb/h2h/:awayId/:homeId", async (req, res) => {
   try {
     const { awayId, homeId } = req.params;
@@ -90,19 +85,19 @@ app.get("/mlb/h2h/:awayId/:homeId", async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
-// NHL player props for a specific game
+
 app.get("/props/nhl/:gameId", async (req, res) => {
   try {
     const { gameId } = req.params;
-    const apiKey = process.env.ODDS_API_KEY || req.query.apiKey;
-    const url = `https://api.the-odds-api.com/v4/sports/icehockey_nhl/events/${gameId}/odds?apiKey=${apiKey}&regions=us&markets=player_goal_scorer_anytime,player_anytime_assist,player_shots_on_goal&oddsFormat=decimal`;ets=player_goal_scorer_anytime,player_anytime_assist,player_shots_on_goal&oddsFormat=decimal`;
+    const apiKey = process.env.ODDS_API_KEY;
+    const url = `https://api.the-odds-api.com/v4/sports/icehockey_nhl/events/${gameId}/odds?apiKey=${apiKey}&regions=us&markets=player_goal_scorer_anytime,player_anytime_assist,player_shots_on_goal&oddsFormat=decimal`;
     const data = await fetch(url).then(r => r.json());
     res.json(data);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
-// Health check
+
 app.get("/", (req, res) => res.json({ status: "OddsWatch API running" }));
 
 const PORT = process.env.PORT || 3000;
