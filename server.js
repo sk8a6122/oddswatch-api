@@ -90,7 +90,33 @@ app.get("/props/nhl/:gameId", async (req, res) => {
   try {
     const { gameId } = req.params;
     const apiKey = process.env.ODDS_API_KEY;
-    const url = `https://api.the-odds-api.com/v4/sports/icehockey_nhl/events/${gameId}/odds?apiKey=${apiKey}&regions=us&markets=player_goal_scorer_anytime,player_shots_on_goal,player_assists,player_points&oddsFormat=decimal`;
+    const marketsRes = await fetch(`https://api.the-odds-api.com/v4/sports/icehockey_nhl/events/${gameId}/markets?apiKey=${apiKey}`);
+    const marketsData = await marketsRes.json();
+    const availableMarkets = (marketsData.markets || [])
+      .filter(m => m.key.startsWith("player_"))
+      .map(m => m.key)
+      .join(",");
+    const markets = availableMarkets || "player_goal_scorer_anytime,player_shots_on_goal,player_assists,player_points";
+    const url = `https://api.the-odds-api.com/v4/sports/icehockey_nhl/events/${gameId}/odds?apiKey=${apiKey}&regions=us&markets=${markets}&oddsFormat=decimal`;
+    const data = await fetch(url).then(r => r.json());
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get("/props/mlb/:gameId", async (req, res) => {
+  try {
+    const { gameId } = req.params;
+    const apiKey = process.env.ODDS_API_KEY;
+    const marketsRes = await fetch(`https://api.the-odds-api.com/v4/sports/baseball_mlb/events/${gameId}/markets?apiKey=${apiKey}`);
+    const marketsData = await marketsRes.json();
+    const availableMarkets = (marketsData.markets || [])
+      .filter(m => m.key.startsWith("batter_") || m.key.startsWith("pitcher_"))
+      .map(m => m.key)
+      .join(",");
+    const markets = availableMarkets || "batter_home_runs,batter_hits,batter_total_bases,pitcher_strikeouts,pitcher_hits_allowed";
+    const url = `https://api.the-odds-api.com/v4/sports/baseball_mlb/events/${gameId}/odds?apiKey=${apiKey}&regions=us&markets=${markets}&oddsFormat=decimal`;
     const data = await fetch(url).then(r => r.json());
     res.json(data);
   } catch (e) {
