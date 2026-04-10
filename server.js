@@ -90,14 +90,24 @@ app.get("/props/nhl/:gameId", async (req, res) => {
   try {
     const { gameId } = req.params;
     const apiKey = process.env.ODDS_API_KEY;
-    const marketsRes = await fetch(`https://api.the-odds-api.com/v4/sports/icehockey_nhl/events/${gameId}/markets?apiKey=${apiKey}`);
-    const marketsData = await marketsRes.json();
-    const availableMarkets = (marketsData.markets || [])
-      .filter(m => m.key.startsWith("player_"))
-      .map(m => m.key)
-      .join(",");
-    const markets = availableMarkets || "player_goal_scorer_anytime,player_shots_on_goal,player_assists,player_points";
-    const url = `https://api.the-odds-api.com/v4/sports/icehockey_nhl/events/${gameId}/odds?apiKey=${apiKey}&regions=us&markets=${markets}&oddsFormat=decimal`;
+    const markets = [
+      "player_goal_scorer_first",
+      "player_goal_scorer_last",
+      "player_goal_scorer_anytime",
+      "player_goals",
+      "player_goals_alternate",
+      "player_assists",
+      "player_assists_alternate",
+      "player_points",
+      "player_points_alternate",
+      "player_power_play_points",
+      "player_power_play_points_alternate",
+      "player_shots_on_goal",
+      "player_shots_on_goal_alternate",
+      "player_blocked_shots",
+      "player_blocked_shots_alternate"
+    ].join(",");
+    const url = `https://api.the-odds-api.com/v4/sports/icehockey_nhl/events/${gameId}/odds?apiKey=${apiKey}&regions=us,us2&markets=${markets}&oddsFormat=decimal`;
     const data = await fetch(url).then(r => r.json());
     res.json(data);
   } catch (e) {
@@ -109,14 +119,28 @@ app.get("/props/mlb/:gameId", async (req, res) => {
   try {
     const { gameId } = req.params;
     const apiKey = process.env.ODDS_API_KEY;
-    const marketsRes = await fetch(`https://api.the-odds-api.com/v4/sports/baseball_mlb/events/${gameId}/markets?apiKey=${apiKey}`);
-    const marketsData = await marketsRes.json();
-    const availableMarkets = (marketsData.markets || [])
-      .filter(m => m.key.startsWith("batter_") || m.key.startsWith("pitcher_"))
-      .map(m => m.key)
-      .join(",");
-    const markets = availableMarkets || "batter_home_runs,batter_hits,batter_total_bases,pitcher_strikeouts,pitcher_hits_allowed";
-    const url = `https://api.the-odds-api.com/v4/sports/baseball_mlb/events/${gameId}/odds?apiKey=${apiKey}&regions=us&markets=${markets}&oddsFormat=decimal`;
+    const markets = [
+      "batter_home_runs",
+      "batter_home_runs_alternate",
+      "batter_hits",
+      "batter_hits_alternate",
+      "batter_total_bases",
+      "batter_total_bases_alternate",
+      "batter_rbis",
+      "batter_rbis_alternate",
+      "batter_runs_scored",
+      "batter_stolen_bases",
+      "batter_walks",
+      "batter_strikeouts",
+      "pitcher_strikeouts",
+      "pitcher_strikeouts_alternate",
+      "pitcher_hits_allowed",
+      "pitcher_hits_allowed_alternate",
+      "pitcher_walks",
+      "pitcher_walks_alternate",
+      "pitcher_earned_runs"
+    ].join(",");
+    const url = `https://api.the-odds-api.com/v4/sports/baseball_mlb/events/${gameId}/odds?apiKey=${apiKey}&regions=us,us2&markets=${markets}&oddsFormat=decimal`;
     const data = await fetch(url).then(r => r.json());
     res.json(data);
   } catch (e) {
