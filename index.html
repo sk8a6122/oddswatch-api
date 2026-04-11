@@ -536,7 +536,7 @@
         const players = statsSport === "nhl" ? data : (data.people || []);
         if (!players || !players.length) { suggestions.style.display="none"; return; }
         suggestions.innerHTML = players.slice(0,5).map(p => {
-          const nm = statsSport==="nhl" ? `${p.firstName} ${p.lastName}` : p.fullName;
+          const nm = statsSport==="nhl" ? (p.name || `${p.firstName?.default || p.firstName || ""} ${p.lastName?.default || p.lastName || ""}`.trim()) : p.fullName;
           const team = statsSport==="nhl" ? (p.lastTeamAbbrev||"") : (p.currentTeam?.name||"");
           const id = statsSport==="nhl" ? p.playerId : p.id;
           return `<div class="suggestion-item" onclick="loadPlayerStats(${id},'${nm.replace(/'/g,"\\'")}')"><div>${nm}</div><div class="suggestion-team">${team}</div></div>`;
