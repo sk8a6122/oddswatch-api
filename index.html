@@ -15,10 +15,17 @@
     .page { display: none; padding: 16px; }
     .page.active { display: block; }
     .sub { color: #888; font-size: 12px; margin-bottom: 16px; }
-    .filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .filters { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
     .filter-btn { padding: 6px 16px; border-radius: 20px; border: 1px solid #2a2d3a; background: transparent; color: #888; font-size: 12px; font-weight: 600; cursor: pointer; }
     .filter-btn:hover { border-color: #555; color: white; }
     .filter-btn.active { background: #1a3a5c; border-color: #378ADD; color: #85B7EB; }
+    .book-filter { background: #1a1d26; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+    .book-filter-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .book-filter-title { font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: .04em; }
+    .book-filter-actions { display: flex; gap: 6px; }
+    .book-filter-action { font-size: 11px; background: none; border: none; cursor: pointer; }
+    .book-btn { padding: 5px 10px; border-radius: 6px; border: 1px solid #22c55e; background: #0d2b1a; color: #22c55e; font-size: 11px; font-weight: 600; cursor: pointer; transition: all .15s; }
+    .book-btn.off { background: transparent; border-color: #2a2d3a; color: #555; }
     .game { background: #1a1d26; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
     .game-header { cursor: pointer; }
     .game-header:hover h2 { color: #85B7EB; }
@@ -110,7 +117,6 @@
     .br-style-btn { padding: 6px 14px; border-radius: 6px; border: 1px solid #2a2d3a; background: transparent; color: #888; font-size: 12px; cursor: pointer; transition: all .15s; }
     .br-style-btn:hover { border-color: #555; color: white; }
     .br-style-btn.active { background: #0d2b1a; border-color: #22c55e; color: #22c55e; }
-    .br-divider { border: none; border-top: 1px solid #2a2d3a; margin: 14px 0; }
     .br-info { font-size: 11px; color: #555; margin-top: 8px; line-height: 1.6; }
     .br-highlight { background: #0d2b1a; border: 1px solid #22c55e; border-radius: 8px; padding: 12px 14px; margin-top: 10px; }
     .br-highlight-title { font-size: 12px; font-weight: 700; color: #22c55e; margin-bottom: 4px; }
@@ -164,7 +170,6 @@
     .arb-calc-label { color: #666; }
     .arb-calc-val { font-weight: 700; color: #22c55e; }
     .arb-calc-val.neutral { color: #e2e8f0; }
-    .arb-total-input { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
     .arb-no-opps { color: #555; font-size: 13px; text-align: center; padding: 40px 0; }
     .arb-scanning { color: #888; font-size: 13px; text-align: center; padding: 40px 0; }
     .arb-count-badge { display: inline-block; background: #0d2b1a; border: 1px solid #22c55e; border-radius: 12px; padding: 2px 10px; font-size: 11px; color: #22c55e; font-weight: 700; margin-left: 8px; }
@@ -194,6 +199,17 @@
       <button class="filter-btn" onclick="setFilter('icehockey_nhl',this)">NHL</button>
       <button class="filter-btn" onclick="setFilter('basketball_nba',this)">NBA</button>
       <button class="filter-btn" onclick="setFilter('americanfootball_nfl',this)">NFL</button>
+    </div>
+    <div class="book-filter">
+      <div class="book-filter-header">
+        <div class="book-filter-title">My sportsbooks</div>
+        <div class="book-filter-actions">
+          <button class="book-filter-action" style="color:#378ADD" onclick="selectAllBooks()">All</button>
+          <span style="color:#333">|</span>
+          <button class="book-filter-action" style="color:#555" onclick="selectNoBooks()">None</button>
+        </div>
+      </div>
+      <div id="book-filter-btns" style="display:flex;gap:6px;flex-wrap:wrap"></div>
     </div>
     <div id="app"><div class="loading">Loading live odds...</div></div>
   </div>
@@ -391,7 +407,7 @@
     const API_KEY = "5ae5320575a8bd9dd920f4abdb1d3acd";
     const NHL_SEASON = "20252026";
     const BACKEND = "https://oddswatch-api.onrender.com";
-    const LOGO_URL = "https://i.imgur.com/2Orq5gz.png";
+    const LOGO_URL = "";
 
     if (LOGO_URL) {
       document.getElementById("logo-img").src = LOGO_URL;
@@ -405,6 +421,40 @@
       document.querySelectorAll(".nav-tab").forEach(b => b.classList.remove("active"));
       document.getElementById("page-" + page).classList.add("active");
       btn.classList.add("active");
+    }
+
+    // ── Book filter ───────────────────────────────────────
+    const BOOK_ORDER = ["draftkings","fanduel","betmgm","caesars","bet365","hardrockbet","espnbet","novig","betonlineag","mybookieag","bovada","pointsbetus","unibet_us","williamhill","fliff"];
+    let activeBooks = new Set(BOOK_ORDER);
+
+    function initBookFilter() {
+      const container = document.getElementById("book-filter-btns");
+      container.innerHTML = BOOK_ORDER.map(bk =>
+        `<button id="bfbtn-${bk}" class="book-btn" onclick="toggleBook('${bk}',this)">${BOOK_NAMES[bk]||bk}</button>`
+      ).join("");
+    }
+
+    function toggleBook(bookKey, btn) {
+      if (activeBooks.has(bookKey)) {
+        activeBooks.delete(bookKey);
+        btn.classList.add("off");
+      } else {
+        activeBooks.add(bookKey);
+        btn.classList.remove("off");
+      }
+      renderFiltered();
+    }
+
+    function selectAllBooks() {
+      activeBooks = new Set(BOOK_ORDER);
+      document.querySelectorAll(".book-btn").forEach(b => b.classList.remove("off"));
+      renderFiltered();
+    }
+
+    function selectNoBooks() {
+      activeBooks.clear();
+      document.querySelectorAll(".book-btn").forEach(b => b.classList.add("off"));
+      renderFiltered();
     }
 
     // ── Bankroll ──────────────────────────────────────────
@@ -450,25 +500,22 @@
     function fmtPct(n) { return n.toFixed(1) + "%"; }
     function updateAll() {
       const br = getBankroll();
-      if (!br) { document.getElementById("bankroll-summary").style.display = "none"; return; }
+      if (!br) { document.getElementById("bankroll-summary").style.display="none"; return; }
       const unit = br*(unitPct/100);
       const maxMult = bettingStyle==="conservative"?1:bettingStyle==="moderate"?2:3;
-      document.getElementById("unit-val").textContent = fmt$(unit);
-      document.getElementById("max-bet").textContent = fmt$(unit*maxMult);
-      document.getElementById("stop-loss").textContent = fmt$(unit*10);
-      document.getElementById("bankroll-summary").style.display = "block";
+      document.getElementById("unit-val").textContent=fmt$(unit);
+      document.getElementById("max-bet").textContent=fmt$(unit*maxMult);
+      document.getElementById("stop-loss").textContent=fmt$(unit*10);
+      document.getElementById("bankroll-summary").style.display="block";
       calcKelly(); calcFlat(); calcParlay();
     }
     function calcKelly() {
-      const br = getBankroll();
-      const oddsStr = document.getElementById("kelly-odds").value;
-      const probStr = document.getElementById("kelly-prob").value;
-      if (!oddsStr || !probStr) { document.getElementById("kelly-result").style.display="none"; return; }
-      const decimal = parseOdds(oddsStr);
-      const p = parseFloat(probStr)/100;
+      const br=getBankroll(), oddsStr=document.getElementById("kelly-odds").value, probStr=document.getElementById("kelly-prob").value;
+      if (!oddsStr||!probStr) { document.getElementById("kelly-result").style.display="none"; return; }
+      const decimal=parseOdds(oddsStr), p=parseFloat(probStr)/100;
       if (!decimal||isNaN(p)||p<=0||p>=1) { document.getElementById("kelly-result").style.display="none"; return; }
-      const b=decimal-1, q=1-p, kelly=(b*p-q)/b, ev=(b*p-q)*100;
-      const fullAmt=Math.max(0,kelly*br), unit=br*(unitPct/100);
+      const b=decimal-1,q=1-p,kelly=(b*p-q)/b,ev=(b*p-q)*100;
+      const fullAmt=Math.max(0,kelly*br),unit=br*(unitPct/100);
       document.getElementById("kelly-full").textContent=fmt$(fullAmt);
       document.getElementById("kelly-half").textContent=fmt$(fullAmt/2);
       document.getElementById("kelly-quarter").textContent=fmt$(fullAmt/4);
@@ -476,16 +523,14 @@
       document.getElementById("kelly-ev").className="br-result-val"+(ev>=0?"":" bad");
       document.getElementById("kelly-profit").textContent=fmt$(fullAmt*b);
       const recMult=bettingStyle==="conservative"?0.25:bettingStyle==="moderate"?0.5:1;
-      const recAmt=fullAmt*recMult, recUnits=unit>0?(recAmt/unit).toFixed(1):"—";
+      const recAmt=fullAmt*recMult,recUnits=unit>0?(recAmt/unit).toFixed(1):"—";
       document.getElementById("kelly-bet-amt").textContent=fmt$(recAmt);
       document.getElementById("kelly-units").textContent=`${recUnits} units based on your ${bettingStyle} style`;
-      document.getElementById("kelly-advice").textContent=kelly<=0?"This bet has negative expected value — not recommended.":kelly<0.02?"Very small edge — consider skipping.":kelly<0.05?"Moderate edge — reasonable bet.":kelly<0.1?"Strong edge — good bet.":"Very high Kelly % — consider Half or Quarter Kelly.";
+      document.getElementById("kelly-advice").textContent=kelly<=0?"Negative EV — not recommended.":kelly<0.02?"Very small edge.":kelly<0.05?"Moderate edge — reasonable bet.":kelly<0.1?"Strong edge — good bet.":"Very high Kelly % — consider Half or Quarter Kelly.";
       document.getElementById("kelly-result").style.display="block";
     }
     function calcFlat() {
-      const amt=parseFloat(document.getElementById("flat-amt").value);
-      const oddsStr=document.getElementById("flat-odds").value;
-      const br=getBankroll();
+      const amt=parseFloat(document.getElementById("flat-amt").value),oddsStr=document.getElementById("flat-odds").value,br=getBankroll();
       if (!amt||!oddsStr) { document.getElementById("flat-result").style.display="none"; return; }
       const decimal=parseOddsAmerican(oddsStr);
       if (!decimal) { document.getElementById("flat-result").style.display="none"; return; }
@@ -496,8 +541,7 @@
       document.getElementById("flat-result").style.display="block";
     }
     function addParlay() {
-      const container=document.getElementById("parlay-legs");
-      const count=container.children.length+1;
+      const container=document.getElementById("parlay-legs"),count=container.children.length+1;
       const row=document.createElement("div"); row.className="parlay-row";
       row.innerHTML=`<input class="br-input" type="text" placeholder="Leg ${count} odds e.g. -110" oninput="calcParlay()" style="flex:1;width:auto"><button class="parlay-remove" onclick="removeParlay(this)">×</button>`;
       container.appendChild(row);
@@ -506,9 +550,8 @@
       if (document.getElementById("parlay-legs").children.length>1) { btn.closest(".parlay-row").remove(); calcParlay(); }
     }
     function calcParlay() {
-      const inputs=document.querySelectorAll("#parlay-legs input");
-      const amt=parseFloat(document.getElementById("parlay-amt").value);
-      let combined=1, prob=1, valid=true;
+      const inputs=document.querySelectorAll("#parlay-legs input"),amt=parseFloat(document.getElementById("parlay-amt").value);
+      let combined=1,prob=1,valid=true;
       inputs.forEach(inp=>{ const d=parseOddsAmerican(inp.value); if (!d){valid=false;return;} combined*=d; prob*=(1/d); });
       if (!valid||combined===1||!amt) { document.getElementById("parlay-result").style.display="none"; return; }
       document.getElementById("parlay-odds").textContent=decimalToAmerican(combined);
@@ -534,225 +577,157 @@
     // ── Arbitrage ─────────────────────────────────────────
     let arbOpportunities = [];
 
-    function decimalToImplied(d) { return 1/d; }
-
     function findArbs(games) {
       const opps = [];
       games.forEach(game => {
-        const teams = [...new Set(game.bookmakers.flatMap(b => b.markets.filter(m=>m.key==="h2h").flatMap(m=>m.outcomes.map(o=>o.name))))];
-        if (teams.length < 2) return;
-
-        // For each team find the best odds across all books
-        const bestPerTeam = {};
-        teams.forEach(team => {
-          let bestOdds = 0, bestBook = "", bestBookKey = "";
-          game.bookmakers.forEach(book => {
-            book.markets.filter(m=>m.key==="h2h").forEach(market => {
-              market.outcomes.forEach(outcome => {
-                if (outcome.name === team && outcome.price > bestOdds) {
-                  bestOdds = outcome.price;
-                  bestBook = book.title;
-                  bestBookKey = book.key;
-                }
-              });
+        const teamBest = {};
+        game.bookmakers.forEach(book => {
+          book.markets.filter(m=>m.key==="h2h").forEach(market => {
+            market.outcomes.forEach(outcome => {
+              const team = outcome.name;
+              if (!teamBest[team] || outcome.price > teamBest[team].odds) {
+                teamBest[team] = { odds: outcome.price, book: book.title, bookKey: book.key };
+              }
             });
           });
-          if (bestOdds > 0) bestPerTeam[team] = { odds: bestOdds, book: bestBook, bookKey: bestBookKey };
         });
-
-        if (Object.keys(bestPerTeam).length < 2) return;
-
-        // Calculate total implied probability
-        const teamList = Object.entries(bestPerTeam);
-        const totalImplied = teamList.reduce((sum, [,v]) => sum + decimalToImplied(v.odds), 0);
-
+        const teamList = Object.entries(teamBest);
+        if (teamList.length < 2) return;
+        const totalImplied = teamList.reduce((sum,[,v]) => sum + (1/v.odds), 0);
         if (totalImplied < 1.0) {
-          const profitPct = ((1/totalImplied) - 1) * 100;
           opps.push({
             game: game.away_team + " @ " + game.home_team,
             sport: game.sport,
             commence_time: game.commence_time,
             totalImplied,
-            profitPct,
-            sides: teamList.map(([team, data]) => ({
-              team,
-              odds: data.odds,
-              book: data.book,
-              bookKey: data.bookKey,
-              implied: decimalToImplied(data.odds)
-            }))
+            profitPct: ((1/totalImplied)-1)*100,
+            sides: teamList.map(([team,data]) => ({ team, odds: data.odds, book: data.book, bookKey: data.bookKey, implied: 1/data.odds }))
           });
         }
       });
-
       return opps.sort((a,b) => b.profitPct - a.profitPct);
     }
 
     function calcArbBets(opp, totalStake) {
-      const sides = opp.sides;
-      const totalImplied = opp.totalImplied;
-      return sides.map(side => {
-        const betAmt = (side.implied / totalImplied) * totalStake;
-        const profit = betAmt * (side.odds - 1);
-        return { ...side, betAmt, profit };
-      });
+      return opp.sides.map(side => ({
+        ...side,
+        betAmt: (side.implied/opp.totalImplied)*totalStake,
+        profit: ((side.implied/opp.totalImplied)*totalStake)*(side.odds-1)
+      }));
     }
 
     function updateArbCalcs() {
-      const totalStake = parseFloat(document.getElementById("arb-bankroll").value) || 1000;
-      document.querySelectorAll(".arb-card").forEach((card, i) => {
-        const opp = arbOpportunities[i];
-        if (!opp) return;
+      const totalStake = parseFloat(document.getElementById("arb-bankroll").value)||1000;
+      document.querySelectorAll(".arb-card").forEach((card,i) => {
+        const opp = arbOpportunities[i]; if (!opp) return;
         const bets = calcArbBets(opp, totalStake);
-        const guaranteedProfit = totalStake * ((1/opp.totalImplied) - 1);
-        bets.forEach((bet, j) => {
-          const betEl = card.querySelector(`#arb-bet-${i}-${j}`);
-          if (betEl) betEl.textContent = "$" + bet.betAmt.toFixed(2);
-        });
-        const profitEl = card.querySelector(`#arb-guaranteed-${i}`);
-        if (profitEl) profitEl.textContent = "$" + guaranteedProfit.toFixed(2);
+        const profit = totalStake*((1/opp.totalImplied)-1);
+        bets.forEach((bet,j) => { const el=card.querySelector(`#arb-bet-${i}-${j}`); if (el) el.textContent="$"+bet.betAmt.toFixed(2); });
+        const el=card.querySelector(`#arb-guaranteed-${i}`); if (el) el.textContent="$"+profit.toFixed(2);
       });
     }
 
     function renderArbCard(opp, idx, totalStake) {
       const bets = calcArbBets(opp, totalStake);
-      const guaranteedProfit = totalStake * ((1/opp.totalImplied) - 1);
+      const profit = totalStake*((1/opp.totalImplied)-1);
       const gameTime = new Date(opp.commence_time).toLocaleString("en-US",{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
-      const sportLabel = SPORT_LABELS[opp.sport] || opp.sport;
-
       let sidesHTML = `<div class="arb-sides">`;
-      bets.forEach((bet, j) => {
-        sidesHTML += `<div class="arb-side">
-          <div class="arb-side-team">${bet.team}</div>
-          <div class="arb-side-book">${bet.book}</div>
-          <div class="arb-side-odds">${decimalToAmerican(bet.odds)}</div>
-          <div class="arb-side-impl">${(bet.implied*100).toFixed(1)}% implied</div>
-        </div>`;
+      bets.forEach(bet => {
+        sidesHTML+=`<div class="arb-side"><div class="arb-side-team">${bet.team}</div><div class="arb-side-book">${bet.book}</div><div class="arb-side-odds">${decimalToAmerican(bet.odds)}</div><div class="arb-side-impl">${(bet.implied*100).toFixed(1)}% implied</div></div>`;
       });
-      sidesHTML += `</div>`;
-
-      let calcHTML = `<div class="arb-calc">
-        <div class="arb-calc-title">Bet calculator</div>`;
-      bets.forEach((bet, j) => {
-        calcHTML += `<div class="arb-calc-row">
-          <span class="arb-calc-label">Bet on ${bet.team} (${bet.book})</span>
-          <span class="arb-calc-val" id="arb-bet-${idx}-${j}">$${bet.betAmt.toFixed(2)}</span>
-        </div>`;
+      sidesHTML+=`</div>`;
+      let calcHTML=`<div class="arb-calc"><div class="arb-calc-title">Bet calculator</div>`;
+      bets.forEach((bet,j) => {
+        calcHTML+=`<div class="arb-calc-row"><span class="arb-calc-label">Bet on ${bet.team} (${bet.book})</span><span class="arb-calc-val" id="arb-bet-${idx}-${j}">$${bet.betAmt.toFixed(2)}</span></div>`;
       });
-      calcHTML += `<div class="arb-calc-row">
-        <span class="arb-calc-label">Guaranteed profit</span>
-        <span class="arb-calc-val" id="arb-guaranteed-${idx}">$${guaranteedProfit.toFixed(2)}</span>
-      </div>
-      <div class="arb-calc-row">
-        <span class="arb-calc-label">Total implied probability</span>
-        <span class="arb-calc-val neutral">${(opp.totalImplied*100).toFixed(2)}%</span>
-      </div></div>`;
-
+      calcHTML+=`<div class="arb-calc-row"><span class="arb-calc-label">Guaranteed profit</span><span class="arb-calc-val" id="arb-guaranteed-${idx}">$${profit.toFixed(2)}</span></div>
+        <div class="arb-calc-row"><span class="arb-calc-label">Total implied</span><span class="arb-calc-val neutral">${(opp.totalImplied*100).toFixed(2)}%</span></div></div>`;
       return `<div class="arb-card">
         <div class="arb-header">
-          <div>
-            <div class="arb-game">${opp.game}</div>
-            <div class="arb-sport">${sportLabel} · ${gameTime}</div>
-          </div>
-          <div class="arb-profit-badge">
-            <div class="arb-profit-pct">+${opp.profitPct.toFixed(2)}%</div>
-            <div class="arb-profit-label">guaranteed profit</div>
-          </div>
+          <div><div class="arb-game">${opp.game}</div><div class="arb-sport">${SPORT_LABELS[opp.sport]||opp.sport} · ${gameTime}</div></div>
+          <div class="arb-profit-badge"><div class="arb-profit-pct">+${opp.profitPct.toFixed(2)}%</div><div class="arb-profit-label">guaranteed profit</div></div>
         </div>
-        ${sidesHTML}
-        ${calcHTML}
+        ${sidesHTML}${calcHTML}
       </div>`;
     }
 
     function renderArbPage() {
-      const display = document.getElementById("arb-display");
-      const totalStake = parseFloat(document.getElementById("arb-bankroll").value) || 1000;
-
+      const display=document.getElementById("arb-display");
+      const totalStake=parseFloat(document.getElementById("arb-bankroll").value)||1000;
       if (!arbOpportunities.length) {
-        display.innerHTML = `<div class="arb-no-opps">
-          <div style="font-size:32px;margin-bottom:12px">🔍</div>
-          <div style="font-size:14px;color:#aaa;margin-bottom:6px">No arb opportunities right now</div>
-          <div style="font-size:12px;color:#555">Books are in close agreement on all current games.<br>Check back as games approach or hit Rescan.</div>
-        </div>`;
-        document.getElementById("arb-count-display").innerHTML = "";
+        display.innerHTML=`<div class="arb-no-opps"><div style="font-size:32px;margin-bottom:12px">🔍</div><div style="font-size:14px;color:#aaa;margin-bottom:6px">No arb opportunities right now</div><div style="font-size:12px;color:#555">Books are in close agreement on all current games.<br>Check back as games approach or hit Rescan.</div></div>`;
+        document.getElementById("arb-count-display").innerHTML="";
         return;
       }
-
-      document.getElementById("arb-count-display").innerHTML = `<span class="arb-count-badge">${arbOpportunities.length}</span>`;
-      display.innerHTML = arbOpportunities.map((opp, i) => renderArbCard(opp, i, totalStake)).join("");
+      document.getElementById("arb-count-display").innerHTML=`<span class="arb-count-badge">${arbOpportunities.length}</span>`;
+      display.innerHTML=arbOpportunities.map((opp,i)=>renderArbCard(opp,i,totalStake)).join("");
     }
 
     async function scanArbs() {
-      document.getElementById("arb-display").innerHTML = `<div class="arb-scanning"><span class="live-dot"></span> Scanning all games for arb opportunities...</div>`;
-      if (!allGames.length) {
-        document.getElementById("arb-display").innerHTML = `<div class="arb-scanning">Loading odds data first...</div>`;
-        return;
-      }
-      arbOpportunities = findArbs(allGames);
+      document.getElementById("arb-display").innerHTML=`<div class="arb-scanning"><span class="live-dot"></span> Scanning...</div>`;
+      arbOpportunities=findArbs(allGames);
       renderArbPage();
     }
 
     // ── Stats Portal ──────────────────────────────────────
-    let statsSport = "nhl", searchTimeout = null;
+    let statsSport="nhl", searchTimeout=null;
 
     function setStatsSport(sport, btn) {
-      statsSport = sport;
-      document.querySelectorAll("#page-stats .br-style-btn").forEach(b => b.classList.remove("active"));
+      statsSport=sport;
+      document.querySelectorAll("#page-stats .br-style-btn").forEach(b=>b.classList.remove("active"));
       btn.classList.add("active");
-      document.getElementById("stats-search").value = "";
-      document.getElementById("stats-suggestions").style.display = "none";
-      document.getElementById("stats-display").innerHTML = `<div style="color:#555;font-size:13px;text-align:center;padding:40px 0">Search for a player to see their stats</div>`;
+      document.getElementById("stats-search").value="";
+      document.getElementById("stats-suggestions").style.display="none";
+      document.getElementById("stats-display").innerHTML=`<div style="color:#555;font-size:13px;text-align:center;padding:40px 0">Search for a player to see their stats</div>`;
     }
     function handleStatsSearch(val) {
       clearTimeout(searchTimeout);
-      if (val.length < 2) { document.getElementById("stats-suggestions").style.display="none"; return; }
-      searchTimeout = setTimeout(() => fetchSuggestions(val), 400);
+      if (val.length<2) { document.getElementById("stats-suggestions").style.display="none"; return; }
+      searchTimeout=setTimeout(()=>fetchSuggestions(val),400);
     }
     async function fetchSuggestions(name) {
       try {
-        const res = await fetch(`${BACKEND}/${statsSport}/search/${encodeURIComponent(name)}`);
-        const data = await res.json();
-        const suggestions = document.getElementById("stats-suggestions");
-        const players = statsSport==="nhl" ? data : (data.people||[]);
+        const res=await fetch(`${BACKEND}/${statsSport}/search/${encodeURIComponent(name)}`);
+        const data=await res.json();
+        const suggestions=document.getElementById("stats-suggestions");
+        const players=statsSport==="nhl"?data:(data.people||[]);
         if (!players||!players.length) { suggestions.style.display="none"; return; }
-        suggestions.innerHTML = players.slice(0,5).map(p => {
-          const nm = statsSport==="nhl"
-            ? (p.name || `${p.firstName?.default||p.firstName||""} ${p.lastName?.default||p.lastName||""}`.trim())
-            : p.fullName;
-          const team = statsSport==="nhl"?(p.lastTeamAbbrev||""):(p.currentTeam?.name||"");
-          const id = statsSport==="nhl"?p.playerId:p.id;
+        suggestions.innerHTML=players.slice(0,5).map(p=>{
+          const nm=statsSport==="nhl"?(p.name||`${p.firstName?.default||p.firstName||""} ${p.lastName?.default||p.lastName||""}`.trim()):p.fullName;
+          const team=statsSport==="nhl"?(p.lastTeamAbbrev||""):(p.currentTeam?.name||"");
+          const id=statsSport==="nhl"?p.playerId:p.id;
           return `<div class="suggestion-item" onclick="loadPlayerStats(${id},'${nm.replace(/'/g,"\\'")}')"><div>${nm}</div><div class="suggestion-team">${team}</div></div>`;
         }).join("");
-        suggestions.style.display = "block";
+        suggestions.style.display="block";
       } catch(e) { console.error(e); }
     }
     async function searchPlayer() {
-      const val = document.getElementById("stats-search").value.trim();
-      if (val.length >= 2) fetchSuggestions(val);
+      const val=document.getElementById("stats-search").value.trim();
+      if (val.length>=2) fetchSuggestions(val);
     }
     async function loadPlayerStats(playerId, playerName) {
-      document.getElementById("stats-suggestions").style.display = "none";
-      document.getElementById("stats-search").value = playerName;
-      const display = document.getElementById("stats-display");
-      display.innerHTML = `<div style="color:#555;font-size:13px;text-align:center;padding:40px 0">Loading ${playerName}...</div>`;
+      document.getElementById("stats-suggestions").style.display="none";
+      document.getElementById("stats-search").value=playerName;
+      const display=document.getElementById("stats-display");
+      display.innerHTML=`<div style="color:#555;font-size:13px;text-align:center;padding:40px 0">Loading ${playerName}...</div>`;
       try {
-        if (statsSport==="nhl") await loadNHLPlayerStats(playerId, playerName, display);
-        else await loadMLBPlayerStats(playerId, playerName, display);
+        if (statsSport==="nhl") await loadNHLPlayerStats(playerId,playerName,display);
+        else await loadMLBPlayerStats(playerId,playerName,display);
       } catch(e) {
-        display.innerHTML = `<div style="color:#f87171;font-size:13px;padding:20px 0">Could not load stats. Try again.</div>`;
+        display.innerHTML=`<div style="color:#f87171;font-size:13px;padding:20px 0">Could not load stats. Try again.</div>`;
       }
     }
     async function loadNHLPlayerStats(playerId, playerName, display) {
-      const res = await fetch(`${BACKEND}/nhl/player/${playerId}`);
-      const data = await res.json();
-      const landing = data.season, gameLog = data.gameLog?.gameLog||[];
-      const featuredStats = landing?.featuredStats?.regularSeason?.subSeason;
-      const position = landing?.position||"F", team = landing?.currentTeamAbbrev||"";
-      const isGoalie = position==="G";
-      let seasonHTML = "";
+      const res=await fetch(`${BACKEND}/nhl/player/${playerId}`);
+      const data=await res.json();
+      const landing=data.season,gameLog=data.gameLog?.gameLog||[];
+      const featuredStats=landing?.featuredStats?.regularSeason?.subSeason;
+      const position=landing?.position||"F",team=landing?.currentTeamAbbrev||"";
+      const isGoalie=position==="G";
+      let seasonHTML="";
       if (featuredStats) {
         if (isGoalie) {
-          seasonHTML = `<div class="stats-grid">
+          seasonHTML=`<div class="stats-grid">
             <div class="stat-box"><div class="stat-box-val">${featuredStats.wins??"—"}</div><div class="stat-box-label">Wins</div></div>
             <div class="stat-box"><div class="stat-box-val">${featuredStats.losses??"—"}</div><div class="stat-box-label">Losses</div></div>
             <div class="stat-box"><div class="stat-box-val">${featuredStats.savePctg?.toFixed(3)??"—"}</div><div class="stat-box-label">SV%</div></div>
@@ -760,8 +735,8 @@
             <div class="stat-box"><div class="stat-box-val">${featuredStats.shutouts??"—"}</div><div class="stat-box-label">SO</div></div>
           </div>`;
         } else {
-          const gp = featuredStats.gamesPlayed||1;
-          seasonHTML = `<div class="stats-grid">
+          const gp=featuredStats.gamesPlayed||1;
+          seasonHTML=`<div class="stats-grid">
             <div class="stat-box"><div class="stat-box-val">${featuredStats.goals??"—"}</div><div class="stat-box-label">Goals</div></div>
             <div class="stat-box"><div class="stat-box-val">${featuredStats.assists??"—"}</div><div class="stat-box-label">Assists</div></div>
             <div class="stat-box"><div class="stat-box-val">${featuredStats.points??"—"}</div><div class="stat-box-label">Points</div></div>
@@ -774,30 +749,30 @@
           </div>`;
         }
       }
-      const last5 = gameLog.slice(0,5);
-      const avgPts = last5.length?last5.reduce((a,g)=>a+(g.points||0),0)/last5.length:0;
-      const seasonPpg = featuredStats?.points&&featuredStats?.gamesPlayed?featuredStats.points/featuredStats.gamesPlayed:0;
-      const hotColdBadge = avgPts>seasonPpg*1.2?`<span class="hot-badge">🔥 Hot</span>`:avgPts<seasonPpg*0.6&&seasonPpg>0?`<span class="cold-badge">❄️ Cold</span>`:"";
-      let gameLogHTML = "";
+      const last5=gameLog.slice(0,5);
+      const avgPts=last5.length?last5.reduce((a,g)=>a+(g.points||0),0)/last5.length:0;
+      const seasonPpg=featuredStats?.points&&featuredStats?.gamesPlayed?featuredStats.points/featuredStats.gamesPlayed:0;
+      const hotColdBadge=avgPts>seasonPpg*1.2?`<span class="hot-badge">🔥 Hot</span>`:avgPts<seasonPpg*0.6&&seasonPpg>0?`<span class="cold-badge">❄️ Cold</span>`:"";
+      let gameLogHTML="";
       if (last5.length) {
-        gameLogHTML = `<div class="game-log-row game-log-header"><span>Date</span><span>Opp</span><span>G</span><span>A</span><span>P</span><span>SOG</span><span>TOI</span></div>`;
-        last5.forEach(g => {
+        gameLogHTML=`<div class="game-log-row game-log-header"><span>Date</span><span>Opp</span><span>G</span><span>A</span><span>P</span><span>SOG</span><span>TOI</span></div>`;
+        last5.forEach(g=>{
           const pts=(g.goals||0)+(g.assists||0);
           gameLogHTML+=`<div class="game-log-row"><span style="color:#555">${g.gameDate?.slice(5)||"—"}</span><span style="color:#aaa">${g.opponentAbbrev||"—"}</span><span style="font-weight:700">${g.goals??0}</span><span style="font-weight:700">${g.assists??0}</span><span style="font-weight:700;color:${pts>=2?"#22c55e":pts===0?"#f87171":"white"}">${pts}</span><span>${g.shots??0}</span><span style="color:#555">${g.toi?.slice(0,5)||"—"}</span></div>`;
         });
       }
-      display.innerHTML = `<div class="stats-card"><div class="stats-name">${playerName} ${hotColdBadge}</div><div class="stats-meta">${team} · ${position} · 2025-26 season</div><div class="stats-section">Season stats</div>${seasonHTML||`<div style="color:#555;font-size:12px">No season stats available</div>`}<div class="stats-section">Last 5 games</div>${gameLogHTML||`<div style="color:#555;font-size:12px">No recent games found</div>`}</div>`;
+      display.innerHTML=`<div class="stats-card"><div class="stats-name">${playerName} ${hotColdBadge}</div><div class="stats-meta">${team} · ${position} · 2025-26 season</div><div class="stats-section">Season stats</div>${seasonHTML||`<div style="color:#555;font-size:12px">No season stats available</div>`}<div class="stats-section">Last 5 games</div>${gameLogHTML||`<div style="color:#555;font-size:12px">No recent games found</div>`}</div>`;
     }
     async function loadMLBPlayerStats(playerId, playerName, display) {
-      const res = await fetch(`${BACKEND}/mlb/player/${playerId}`);
-      const data = await res.json();
-      const hitStats = data.hitting?.stats?.[0]?.splits?.[0]?.stat;
-      const pitStats = data.pitching?.stats?.[0]?.splits?.[0]?.stat;
-      const gameLogSplits = data.gameLog?.stats?.[0]?.splits||[];
-      const last10 = gameLogSplits.slice(-10).reverse();
-      let seasonHTML = "";
+      const res=await fetch(`${BACKEND}/mlb/player/${playerId}`);
+      const data=await res.json();
+      const hitStats=data.hitting?.stats?.[0]?.splits?.[0]?.stat;
+      const pitStats=data.pitching?.stats?.[0]?.splits?.[0]?.stat;
+      const gameLogSplits=data.gameLog?.stats?.[0]?.splits||[];
+      const last10=gameLogSplits.slice(-10).reverse();
+      let seasonHTML="";
       if (hitStats) {
-        seasonHTML = `<div class="stats-grid">
+        seasonHTML=`<div class="stats-grid">
           <div class="stat-box"><div class="stat-box-val">${hitStats.avg||"—"}</div><div class="stat-box-label">AVG</div></div>
           <div class="stat-box"><div class="stat-box-val">${hitStats.obp||"—"}</div><div class="stat-box-label">OBP</div></div>
           <div class="stat-box"><div class="stat-box-val">${hitStats.slg||"—"}</div><div class="stat-box-label">SLG</div></div>
@@ -809,7 +784,7 @@
           <div class="stat-box"><div class="stat-box-val">${hitStats.baseOnBalls??"—"}</div><div class="stat-box-label">BB</div></div>
         </div>`;
       } else if (pitStats) {
-        seasonHTML = `<div class="stats-grid">
+        seasonHTML=`<div class="stats-grid">
           <div class="stat-box"><div class="stat-box-val">${pitStats.era||"—"}</div><div class="stat-box-label">ERA</div></div>
           <div class="stat-box"><div class="stat-box-val">${pitStats.whip||"—"}</div><div class="stat-box-label">WHIP</div></div>
           <div class="stat-box"><div class="stat-box-val">${pitStats.wins??"—"}-${pitStats.losses??"—"}</div><div class="stat-box-label">W-L</div></div>
@@ -818,15 +793,15 @@
           <div class="stat-box"><div class="stat-box-val">${pitStats.baseOnBalls??"—"}</div><div class="stat-box-label">BB</div></div>
         </div>`;
       }
-      let hotColdBadge = "";
+      let hotColdBadge="";
       if (hitStats&&last10.length>=5) {
-        const recentHits=last10.slice(0,5).reduce((a,g)=>a+(g.stat?.hits||0),0);
-        const recentAB=last10.slice(0,5).reduce((a,g)=>a+(g.stat?.atBats||1),0);
-        const recentAvg=recentHits/recentAB, seasonAvgNum=parseFloat(hitStats.avg)||0;
-        if (recentAvg>seasonAvgNum*1.15) hotColdBadge=`<span class="hot-badge">🔥 Hot</span>`;
-        else if (recentAvg<seasonAvgNum*0.7) hotColdBadge=`<span class="cold-badge">❄️ Cold</span>`;
+        const rH=last10.slice(0,5).reduce((a,g)=>a+(g.stat?.hits||0),0);
+        const rAB=last10.slice(0,5).reduce((a,g)=>a+(g.stat?.atBats||1),0);
+        const rAvg=rH/rAB,sAvg=parseFloat(hitStats.avg)||0;
+        if (rAvg>sAvg*1.15) hotColdBadge=`<span class="hot-badge">🔥 Hot</span>`;
+        else if (rAvg<sAvg*0.7) hotColdBadge=`<span class="cold-badge">❄️ Cold</span>`;
       }
-      let gameLogHTML = "";
+      let gameLogHTML="";
       if (last10.length&&hitStats) {
         gameLogHTML=`<div class="game-log-row game-log-header"><span>Date</span><span>Opp</span><span>AB</span><span>H</span><span>HR</span><span>RBI</span><span>K</span></div>`;
         last10.forEach(g=>{
@@ -914,15 +889,14 @@
       "pitcher_earned_runs":"Earned runs"
     };
 
-    let allGames=[], currentFilter="all", goalieCache={}, nhlH2HCache={}, mlbGamesCache=null, mlbPitcherCache={}, mlbH2HCache={}, propsCache={};     let activeBooks = new Set(Object.keys(BOOK_LINKS));      function initBookFilter() {       const container = document.getElementById("book-filter-btns");       const bookOrder = ["draftkings","fanduel","betmgm","caesars","bet365","hardrockbet","espnbet","novig","betonlineag","mybookieag","bovada","pointsbetus","unibet_us","williamhill","fliff"];       container.innerHTML = bookOrder.map(bk => `         <button id="bfbtn-${bk}" onclick="toggleBook('${bk}',this)"           style="padding:5px 10px;border-radius:6px;border:1px solid #22c55e;background:#0d2b1a;color:#22c55e;font-size:11px;font-weight:600;cursor:pointer">           ${BOOK_NAMES[bk]||bk}         </button>`).join("");     }      function toggleBook(bookKey, btn) {       if (activeBooks.has(bookKey)) {         activeBooks.delete(bookKey);         btn.style.background = "transparent";         btn.style.borderColor = "#2a2d3a";         btn.style.color = "#555";       } else {         activeBooks.add(bookKey);         btn.style.background = "#0d2b1a";         btn.style.borderColor = "#22c55e";         btn.style.color = "#22c55e";       }       renderFiltered();     }      function selectAllBooks() {       activeBooks = new Set(Object.keys(BOOK_LINKS));       document.querySelectorAll("[id^='bfbtn-']").forEach(btn => {         btn.style.background = "#0d2b1a";         btn.style.borderColor = "#22c55e";         btn.style.color = "#22c55e";       });       renderFiltered();     }      function selectNoBooks() {       activeBooks.clear();       document.querySelectorAll("[id^='bfbtn-']").forEach(btn => {         btn.style.background = "transparent";         btn.style.borderColor = "#2a2d3a";         btn.style.color = "#555";       });       renderFiltered();     }     let activeBooks = new Set(Object.keys(BOOK_LINKS));      function initBookFilter() {       const container = document.getElementById("book-filter-btns");       const bookOrder = ["draftkings","fanduel","betmgm","caesars","bet365","hardrockbet","espnbet","novig","betonlineag","mybookieag","bovada","pointsbetus","unibet_us","williamhill","fliff"];       container.innerHTML = bookOrder.map(bk => `         <button id="bfbtn-${bk}" onclick="toggleBook('${bk}',this)"           style="padding:5px 10px;border-radius:6px;border:1px solid #22c55e;background:#0d2b1a;color:#22c55e;font-size:11px;font-weight:600;cursor:pointer">           ${BOOK_NAMES[bk]||bk}         </button>`).join("");     }      function toggleBook(bookKey, btn) {       if (activeBooks.has(bookKey)) {         activeBooks.delete(bookKey);         btn.style.background = "transparent";         btn.style.borderColor = "#2a2d3a";         btn.style.color = "#555";       } else {         activeBooks.add(bookKey);         btn.style.background = "#0d2b1a";         btn.style.borderColor = "#22c55e";         btn.style.color = "#22c55e";       }       renderFiltered();     }      function selectAllBooks() {       activeBooks = new Set(Object.keys(BOOK_LINKS));       document.querySelectorAll("[id^='bfbtn-']").forEach(btn => {         btn.style.background = "#0d2b1a";         btn.style.borderColor = "#22c55e";         btn.style.color = "#22c55e";       });       renderFiltered();     }      function selectNoBooks() {       activeBooks.clear();       document.querySelectorAll("[id^='bfbtn-']").forEach(btn => {         btn.style.background = "transparent";         btn.style.borderColor = "#2a2d3a";         btn.style.color = "#555";       });       renderFiltered();     }
+    let allGames=[], currentFilter="all", goalieCache={}, nhlH2HCache={}, mlbGamesCache=null, mlbPitcherCache={}, mlbH2HCache={}, propsCache={};
 
-    function fmtOdds(decimal) { return decimal>=2.0?"+"+Math.round((decimal-1)*100):"-"+Math.round(100/(decimal-1)); }
+    function fmtOdds(d) { return d>=2.0?"+"+Math.round((d-1)*100):"-"+Math.round(100/(d-1)); }
     function getBestBook(outcomes) { return outcomes.reduce((best,o)=>o.price>best.price?o:best); }
     function isSpikeOdds(outcomes) {
       const prices=outcomes.map(o=>o.price),best=Math.max(...prices);
       const others=prices.filter(p=>p!==best),avg=others.reduce((a,b)=>a+b,0)/others.length;
-      const bestAm=best>=2.0?(best-1)*100:100/(1-best);
-      return bestAm>=300&&(best/avg)>=3;
+      return best>=2.0?(best-1)*100>=300&&(best/avg)>=3:false;
     }
     function getBookLink(k) { return BOOK_LINKS[k]||"#"; }
     function hasSpike(playerData) {
@@ -1132,8 +1106,7 @@
         h2h.forEach(g=>{matchupHTML+=`<div class="h2h-row"><span class="h2h-date">${g.date}</span><span style="color:#aaa">${g.awayAbbrev} @ ${g.homeAbbrev}</span><span style="font-weight:700">${g.awayScore} - ${g.homeScore}</span><span class="h2h-winner">${g.winnerAbbrev} W</span></div>`;});
       } else { matchupHTML+=`<div style="color:#555;font-size:12px;padding:6px 0">No completed matchups yet.</div>`; }
       const parsedProps=parseProps(propsData,NHL_CATEGORIES);
-      const propsHTML=renderPlayerList(parsedProps,NHL_CATEGORIES,gameId);
-      panel.innerHTML=`<div class="panel-tabs"><button class="panel-tab active ptab-${gameId}" id="tab-${gameId}-matchup" onclick="switchPanelTab('${gameId}','matchup')">Matchup</button><button class="panel-tab ptab-${gameId}" id="tab-${gameId}-props" onclick="switchPanelTab('${gameId}','props')">Player props</button></div><div id="matchup-${gameId}">${matchupHTML}</div><div id="props-${gameId}" style="display:none">${propsHTML}</div>`;
+      panel.innerHTML=`<div class="panel-tabs"><button class="panel-tab active ptab-${gameId}" id="tab-${gameId}-matchup" onclick="switchPanelTab('${gameId}','matchup')">Matchup</button><button class="panel-tab ptab-${gameId}" id="tab-${gameId}-props" onclick="switchPanelTab('${gameId}','props')">Player props</button></div><div id="matchup-${gameId}">${matchupHTML}</div><div id="props-${gameId}" style="display:none">${renderPlayerList(parsedProps,NHL_CATEGORIES,gameId)}</div>`;
     }
     async function loadMLBPanel(gameId, awayTeam, homeTeam) {
       const panel=document.getElementById("panel-"+gameId);
@@ -1155,8 +1128,7 @@
         h2h.forEach(g=>{html+=`<div class="h2h-row"><span class="h2h-date">${g.date}</span><span style="color:#aaa;font-size:10px">${g.away} @ ${g.home}</span><span style="font-weight:700">${g.awayScore} - ${g.homeScore}</span><span class="h2h-winner">${g.winner===awayTeam?"Away W":"Home W"}</span></div>`;});
       } else { html+=`<div style="color:#555;font-size:12px;padding:6px 0">No completed matchups yet.</div>`; }
       const parsedProps=parseProps(propsData,MLB_CATEGORIES);
-      const propsHTML=renderPlayerList(parsedProps,MLB_CATEGORIES,gameId);
-      panel.innerHTML=`<div class="panel-tabs"><button class="panel-tab active ptab-${gameId}" id="tab-${gameId}-matchup" onclick="switchPanelTab('${gameId}','matchup')">Matchup</button><button class="panel-tab ptab-${gameId}" id="tab-${gameId}-props" onclick="switchPanelTab('${gameId}','props')">Player props</button></div><div id="matchup-${gameId}">${html}</div><div id="props-${gameId}" style="display:none">${propsHTML}</div>`;
+      panel.innerHTML=`<div class="panel-tabs"><button class="panel-tab active ptab-${gameId}" id="tab-${gameId}-matchup" onclick="switchPanelTab('${gameId}','matchup')">Matchup</button><button class="panel-tab ptab-${gameId}" id="tab-${gameId}-props" onclick="switchPanelTab('${gameId}','props')">Player props</button></div><div id="matchup-${gameId}">${html}</div><div id="props-${gameId}" style="display:none">${renderPlayerList(parsedProps,MLB_CATEGORIES,gameId)}</div>`;
     }
     function toggleMatchup(gameId, awayTeam, homeTeam, sport) {
       const panel=document.getElementById("panel-"+gameId),hint=document.getElementById("hint-"+gameId);
@@ -1172,20 +1144,21 @@
       }
     }
     function renderGame(game) {
-      const markets=game.bookmakers.flatMap(b=>b.markets.filter(m=>m.key==="h2h").flatMap(m=>m.outcomes.map(o=>({book:b.key,bookName:b.title,team:o.name,price:o.price}))));
-      const teams=[...new Set(markets.map(m=>m.team))];
+      const allOutcomes=game.bookmakers.flatMap(b=>b.markets.filter(m=>m.key==="h2h").flatMap(m=>m.outcomes.map(o=>({book:b.key,bookName:b.title,team:o.name,price:o.price}))));
+      const teams=[...new Set(allOutcomes.map(m=>m.team))];
       const gameTime=new Date(game.commence_time).toLocaleString("en-US",{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
       const isNHL=game.sport==="icehockey_nhl",isMLB=game.sport==="baseball_mlb";
       const hasMatchup=isNHL||isMLB,gameId=game.id;
       const awayEsc=game.away_team.replace(/'/g,"\\'"),homeEsc=game.home_team.replace(/'/g,"\\'");
       let html=`<div class="game"><div class="game-header" ${hasMatchup?`onclick="toggleMatchup('${gameId}','${awayEsc}','${homeEsc}','${game.sport}')"`:""}><div class="sport-tag">${SPORT_LABELS[game.sport]}</div><h2>${game.away_team} @ ${game.home_team}</h2><div class="game-time">${gameTime}</div></div>`;
       teams.forEach(team=>{
-        const outcomes=markets.filter(m=>m.team===team); if (outcomes.length<2) return;
-        const best=getBestBook(outcomes),spike=isSpikeOdds(outcomes);
+        const outcomes=allOutcomes.filter(o=>o.team===team&&activeBooks.has(o.book));
+        if (outcomes.length<1) return;
+        const best=getBestBook(outcomes),spike=outcomes.length>1&&isSpikeOdds(outcomes);
         if (spike) html+=`<span class="badge spike">&#9888; Spike on ${team}</span><br>`;
         html+=`<div class="team-label">${team}</div><div class="books">`;
         outcomes.forEach(o=>{
-          const isBest=o.bookName===best.bookName;
+          const isBest=o.book===best.book;
           html+=`<a class="${spike&&isBest?"book spike":isBest?"book best":"book"}" href="${getBookLink(o.book)}" target="_blank" rel="noopener"><div class="book-name">${BOOK_NAMES[o.book]||o.bookName}</div><div class="book-odds">${fmtOdds(o.price)}</div></a>`;
         });
         html+=`</div>`;
@@ -1220,13 +1193,15 @@
           });
         }
         renderFiltered();
-        // Auto-scan arbs after odds load
         arbOpportunities=findArbs(allGames);
         renderArbPage();
-      } catch(err) { document.getElementById("app").innerHTML=`<div class="error">Could not load odds.<br><small>${err.message}</small></div>`; }
+      } catch(err) {
+        app.innerHTML=`<div class="error">Could not load odds.<br><small>${err.message}</small></div>`;
+      }
     }
 
-    initBookFilter();     
+    initBookFilter();
+    loadAllOdds();
   </script>
 </body>
 </html>
