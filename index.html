@@ -535,7 +535,7 @@
       try {
         let players = [];
         if (statsSport === "nhl") {
-          const res = await fetch(`https://api-web.nhle.com/v1/roster/${abbrev}/20252026`);
+          const res = await fetch(`https://api-web.nhle.com/v1/roster/${abbrev}/current`);
           const data = await res.json();
           const all = [...(data.forwards||[]), ...(data.defensemen||[]), ...(data.goalies||[])];
           players = all.map(p => ({
