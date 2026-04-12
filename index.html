@@ -173,6 +173,18 @@
     .arb-no-opps { color: #555; font-size: 13px; text-align: center; padding: 40px 0; }
     .arb-scanning { color: #888; font-size: 13px; text-align: center; padding: 40px 0; }
     .arb-count-badge { display: inline-block; background: #0d2b1a; border: 1px solid #22c55e; border-radius: 12px; padding: 2px 10px; font-size: 11px; color: #22c55e; font-weight: 700; margin-left: 8px; }
+    /* Stats portal */
+    .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-top: 12px; }
+    .team-card { background: #12141c; border: 1px solid #2a2d3a; border-radius: 8px; padding: 12px; cursor: pointer; transition: border-color .15s; text-align: center; }
+    .team-card:hover { border-color: #378ADD; }
+    .team-card-abbrev { font-size: 20px; font-weight: 900; color: white; margin-bottom: 2px; }
+    .team-card-name { font-size: 10px; color: #555; }
+    .roster-player { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; background: #12141c; border-radius: 6px; margin-bottom: 4px; cursor: pointer; border: 1px solid #2a2d3a; transition: border-color .15s; }
+    .roster-player:hover { border-color: #378ADD; }
+    .roster-player-name { font-size: 13px; font-weight: 600; color: #e2e8f0; }
+    .roster-player-pos { font-size: 11px; color: #555; }
+    .stats-back { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #378ADD; cursor: pointer; margin-bottom: 12px; background: none; border: none; padding: 0; }
+    .stats-back:hover { color: #85B7EB; }
   </style>
 </head>
 <body>
@@ -233,7 +245,7 @@
               style="background:#12141c;border:1px solid #2a2d3a;border-radius:6px;padding:8px 12px 8px 22px;color:white;font-size:14px;font-weight:600;width:140px;outline:none"
               oninput="updateArbCalcs()">
           </div>
-          <span style="font-size:11px;color:#555">Enter your total stake and we'll split it optimally across both sides</span>
+          <span style="font-size:11px;color:#555">Enter your total stake and we'll split it optimally</span>
         </div>
       </div>
     </div>
@@ -242,22 +254,22 @@
 
   <!-- STATS PAGE -->
   <div class="page" id="page-stats">
-    <div style="background:#1a1d26;border-radius:10px;padding:14px;margin-bottom:12px;margin-top:12px">
-      <div style="font-size:14px;font-weight:700;margin-bottom:12px">Player stats portal</div>
-      <div style="display:flex;gap:6px;margin-bottom:12px">
+    <div style="margin-top:12px">
+      <!-- Sport selector -->
+      <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
         <button class="br-style-btn active" id="stats-sport-nhl" onclick="setStatsSport('nhl',this)">NHL</button>
         <button class="br-style-btn" id="stats-sport-mlb" onclick="setStatsSport('mlb',this)">MLB</button>
       </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input id="stats-search" type="text" placeholder="Search player name..."
+      <!-- Search bar (always visible) -->
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+        <input id="stats-search" type="text" placeholder="Or search player by name..."
           style="flex:1;background:#12141c;border:1px solid #2a2d3a;border-radius:6px;padding:10px 12px;color:white;font-size:14px;outline:none"
           oninput="handleStatsSearch(this.value)" onkeydown="if(event.key==='Enter')searchPlayer()">
         <button onclick="searchPlayer()" style="padding:10px 16px;background:#1a3a5c;border:1px solid #378ADD;border-radius:6px;color:#85B7EB;font-size:13px;font-weight:600;cursor:pointer">Search</button>
       </div>
-      <div id="stats-suggestions" style="display:none;background:#12141c;border:1px solid #2a2d3a;border-radius:6px;margin-top:4px;overflow:hidden"></div>
-    </div>
-    <div id="stats-display">
-      <div style="color:#555;font-size:13px;text-align:center;padding:40px 0">Search for a player to see their stats</div>
+      <div id="stats-suggestions" style="display:none;background:#12141c;border:1px solid #2a2d3a;border-radius:6px;margin-bottom:8px;overflow:hidden"></div>
+      <!-- Main content area -->
+      <div id="stats-main"></div>
     </div>
   </div>
 
@@ -411,274 +423,304 @@
     const CACHE_KEY = "cto_odds_cache";
     const CACHE_DURATION = 5 * 60 * 1000;
 
-    if (LOGO_URL) {
-      document.getElementById("logo-img").src = LOGO_URL;
-    } else {
-      document.getElementById("logo-img").style.display = "none";
-      document.getElementById("logo-text").style.display = "block";
-    }
+    if (LOGO_URL) { document.getElementById("logo-img").src=LOGO_URL; }
+    else { document.getElementById("logo-img").style.display="none"; document.getElementById("logo-text").style.display="block"; }
 
-    function switchPage(page, btn) {
-      document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-      document.querySelectorAll(".nav-tab").forEach(b => b.classList.remove("active"));
-      document.getElementById("page-" + page).classList.add("active");
+    function switchPage(page,btn) {
+      document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+      document.querySelectorAll(".nav-tab").forEach(b=>b.classList.remove("active"));
+      document.getElementById("page-"+page).classList.add("active");
       btn.classList.add("active");
     }
 
     // ── Book filter ───────────────────────────────────────
-    const BOOK_ORDER = ["draftkings","fanduel","betmgm","caesars","bet365","hardrockbet","espnbet","novig","betonlineag","mybookieag","bovada","pointsbetus","unibet_us","williamhill","fliff"];
-    let activeBooks = new Set(BOOK_ORDER);
-
+    const BOOK_ORDER=["draftkings","fanduel","betmgm","caesars","bet365","hardrockbet","espnbet","novig","betonlineag","mybookieag","bovada","pointsbetus","unibet_us","williamhill","fliff"];
+    let activeBooks=new Set(BOOK_ORDER);
     function initBookFilter() {
-      const container = document.getElementById("book-filter-btns");
-      container.innerHTML = BOOK_ORDER.map(bk =>
-        `<button id="bfbtn-${bk}" class="book-btn" onclick="toggleBook('${bk}',this)">${BOOK_NAMES[bk]||bk}</button>`
-      ).join("");
+      document.getElementById("book-filter-btns").innerHTML=BOOK_ORDER.map(bk=>`<button id="bfbtn-${bk}" class="book-btn" onclick="toggleBook('${bk}',this)">${BOOK_NAMES[bk]||bk}</button>`).join("");
     }
-    function toggleBook(bookKey, btn) {
-      if (activeBooks.has(bookKey)) { activeBooks.delete(bookKey); btn.classList.add("off"); }
-      else { activeBooks.add(bookKey); btn.classList.remove("off"); }
-      renderFiltered();
-    }
-    function selectAllBooks() {
-      activeBooks = new Set(BOOK_ORDER);
-      document.querySelectorAll(".book-btn").forEach(b => b.classList.remove("off"));
-      renderFiltered();
-    }
-    function selectNoBooks() {
-      activeBooks.clear();
-      document.querySelectorAll(".book-btn").forEach(b => b.classList.add("off"));
-      renderFiltered();
-    }
+    function toggleBook(bookKey,btn) { if(activeBooks.has(bookKey)){activeBooks.delete(bookKey);btn.classList.add("off");}else{activeBooks.add(bookKey);btn.classList.remove("off");}renderFiltered(); }
+    function selectAllBooks() { activeBooks=new Set(BOOK_ORDER);document.querySelectorAll(".book-btn").forEach(b=>b.classList.remove("off"));renderFiltered(); }
+    function selectNoBooks() { activeBooks.clear();document.querySelectorAll(".book-btn").forEach(b=>b.classList.add("off"));renderFiltered(); }
 
     // ── Bankroll ──────────────────────────────────────────
-    let unitPct=2, bettingStyle="moderate", oddsFmt="american";
-    function setUnitPct(pct,btn) { unitPct=pct; document.querySelectorAll(".br-style-btn").forEach(b=>{if(["1%","2%","3%","5%"].includes(b.textContent))b.classList.remove("active");}); btn.classList.add("active"); updateAll(); }
-    function setStyle(style,btn) { bettingStyle=style; document.querySelectorAll(".br-style-btn").forEach(b=>{if(["Conservative","Moderate","Aggressive"].includes(b.textContent))b.classList.remove("active");}); btn.classList.add("active"); updateAll(); }
-    function setOddsFmt(fmt,btn) { oddsFmt=fmt; document.querySelectorAll(".br-type-btn").forEach(b=>b.classList.remove("active")); btn.classList.add("active"); document.getElementById("kelly-odds").placeholder=fmt==="american"?"+150":"2.50"; }
-    function getBankroll() { return parseFloat(document.getElementById("bankroll").value)||0; }
-    function parseOdds(str) {
-      if (!str) return null; str=str.trim();
-      if (oddsFmt==="decimal"||(!str.includes("+")&&!str.includes("-")&&parseFloat(str)>1)) { const d=parseFloat(str); return isNaN(d)?null:d; }
-      const n=parseFloat(str.replace(/[^0-9.\-]/g,s=>s==="-"?"-":"")); if (isNaN(n)) return null;
-      return n>=0?(n/100)+1:(100/Math.abs(n))+1;
-    }
-    function parseOddsAmerican(str) {
-      if (!str) return null; str=str.trim();
-      const n=parseFloat(str.replace(/[^0-9.\-+]/g,"")); if (isNaN(n)) return null;
-      return n>=0?(n/100)+1:(100/Math.abs(n))+1;
-    }
-    function decimalToAmerican(d) { return d>=2?"+"+Math.round((d-1)*100):Math.round(-100/(d-1)).toString(); }
-    function fmt$(n) { return "$"+n.toFixed(2); }
-    function fmtPct(n) { return n.toFixed(1)+"%"; }
-    function updateAll() {
-      const br=getBankroll(); if (!br){document.getElementById("bankroll-summary").style.display="none";return;}
-      const unit=br*(unitPct/100),maxMult=bettingStyle==="conservative"?1:bettingStyle==="moderate"?2:3;
-      document.getElementById("unit-val").textContent=fmt$(unit);
-      document.getElementById("max-bet").textContent=fmt$(unit*maxMult);
-      document.getElementById("stop-loss").textContent=fmt$(unit*10);
-      document.getElementById("bankroll-summary").style.display="block";
-      calcKelly(); calcFlat(); calcParlay();
-    }
-    function calcKelly() {
-      const br=getBankroll(),oddsStr=document.getElementById("kelly-odds").value,probStr=document.getElementById("kelly-prob").value;
-      if (!oddsStr||!probStr){document.getElementById("kelly-result").style.display="none";return;}
-      const decimal=parseOdds(oddsStr),p=parseFloat(probStr)/100;
-      if (!decimal||isNaN(p)||p<=0||p>=1){document.getElementById("kelly-result").style.display="none";return;}
-      const b=decimal-1,q=1-p,kelly=(b*p-q)/b,ev=(b*p-q)*100,fullAmt=Math.max(0,kelly*br),unit=br*(unitPct/100);
-      document.getElementById("kelly-full").textContent=fmt$(fullAmt);
-      document.getElementById("kelly-half").textContent=fmt$(fullAmt/2);
-      document.getElementById("kelly-quarter").textContent=fmt$(fullAmt/4);
-      document.getElementById("kelly-ev").textContent=(ev>=0?"+":"")+ev.toFixed(1)+"%";
-      document.getElementById("kelly-ev").className="br-result-val"+(ev>=0?"":" bad");
-      document.getElementById("kelly-profit").textContent=fmt$(fullAmt*b);
-      const recMult=bettingStyle==="conservative"?0.25:bettingStyle==="moderate"?0.5:1,recAmt=fullAmt*recMult,recUnits=unit>0?(recAmt/unit).toFixed(1):"—";
-      document.getElementById("kelly-bet-amt").textContent=fmt$(recAmt);
-      document.getElementById("kelly-units").textContent=`${recUnits} units based on your ${bettingStyle} style`;
-      document.getElementById("kelly-advice").textContent=kelly<=0?"Negative EV — not recommended.":kelly<0.02?"Very small edge.":kelly<0.05?"Moderate edge — reasonable bet.":kelly<0.1?"Strong edge — good bet.":"Very high Kelly % — consider Half or Quarter Kelly.";
-      document.getElementById("kelly-result").style.display="block";
-    }
-    function calcFlat() {
-      const amt=parseFloat(document.getElementById("flat-amt").value),oddsStr=document.getElementById("flat-odds").value,br=getBankroll();
-      if (!amt||!oddsStr){document.getElementById("flat-result").style.display="none";return;}
-      const decimal=parseOddsAmerican(oddsStr); if (!decimal){document.getElementById("flat-result").style.display="none";return;}
-      document.getElementById("flat-profit").textContent=fmt$(amt*(decimal-1));
-      document.getElementById("flat-payout").textContent=fmt$(amt*decimal);
-      document.getElementById("flat-impl").textContent=fmtPct((1/decimal)*100);
-      document.getElementById("flat-pct").textContent=fmtPct(br?(amt/br)*100:0);
-      document.getElementById("flat-result").style.display="block";
-    }
-    function addParlay() {
-      const container=document.getElementById("parlay-legs"),count=container.children.length+1;
-      const row=document.createElement("div"); row.className="parlay-row";
-      row.innerHTML=`<input class="br-input" type="text" placeholder="Leg ${count} odds e.g. -110" oninput="calcParlay()" style="flex:1;width:auto"><button class="parlay-remove" onclick="removeParlay(this)">×</button>`;
-      container.appendChild(row);
-    }
-    function removeParlay(btn) { if (document.getElementById("parlay-legs").children.length>1){btn.closest(".parlay-row").remove();calcParlay();} }
-    function calcParlay() {
-      const inputs=document.querySelectorAll("#parlay-legs input"),amt=parseFloat(document.getElementById("parlay-amt").value);
-      let combined=1,prob=1,valid=true;
-      inputs.forEach(inp=>{const d=parseOddsAmerican(inp.value);if(!d){valid=false;return;}combined*=d;prob*=(1/d);});
-      if (!valid||combined===1||!amt){document.getElementById("parlay-result").style.display="none";return;}
-      document.getElementById("parlay-odds").textContent=decimalToAmerican(combined);
-      document.getElementById("parlay-profit").textContent=fmt$(amt*(combined-1));
-      document.getElementById("parlay-payout").textContent=fmt$(amt*combined);
-      document.getElementById("parlay-prob").textContent=fmtPct(prob*100);
-      document.getElementById("parlay-result").style.display="block";
-    }
-    function calcConverter() {
-      const input=document.getElementById("conv-input").value.trim(); if (!input){document.getElementById("conv-result").style.display="none";return;}
-      let decimal=null;
-      if (input.endsWith("%")){const p=parseFloat(input)/100;if(p>0&&p<1)decimal=1/p;}
-      else if (input.startsWith("+")||input.startsWith("-")){const n=parseFloat(input);if(!isNaN(n))decimal=n>=0?(n/100)+1:(100/Math.abs(n))+1;}
-      else {const n=parseFloat(input);if(!isNaN(n)&&n>1)decimal=n;}
-      if (!decimal){document.getElementById("conv-result").style.display="none";return;}
-      document.getElementById("conv-american").textContent=decimalToAmerican(decimal);
-      document.getElementById("conv-decimal").textContent=decimal.toFixed(3);
-      document.getElementById("conv-implied").textContent=fmtPct((1/decimal)*100);
-      document.getElementById("conv-result").style.display="block";
-    }
+    let unitPct=2,bettingStyle="moderate",oddsFmt="american";
+    function setUnitPct(pct,btn){unitPct=pct;document.querySelectorAll(".br-style-btn").forEach(b=>{if(["1%","2%","3%","5%"].includes(b.textContent))b.classList.remove("active");});btn.classList.add("active");updateAll();}
+    function setStyle(style,btn){bettingStyle=style;document.querySelectorAll(".br-style-btn").forEach(b=>{if(["Conservative","Moderate","Aggressive"].includes(b.textContent))b.classList.remove("active");});btn.classList.add("active");updateAll();}
+    function setOddsFmt(fmt,btn){oddsFmt=fmt;document.querySelectorAll(".br-type-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");document.getElementById("kelly-odds").placeholder=fmt==="american"?"+150":"2.50";}
+    function getBankroll(){return parseFloat(document.getElementById("bankroll").value)||0;}
+    function parseOdds(str){if(!str)return null;str=str.trim();if(oddsFmt==="decimal"||(!str.includes("+")&&!str.includes("-")&&parseFloat(str)>1)){const d=parseFloat(str);return isNaN(d)?null:d;}const n=parseFloat(str.replace(/[^0-9.\-]/g,s=>s==="-"?"-":""));if(isNaN(n))return null;return n>=0?(n/100)+1:(100/Math.abs(n))+1;}
+    function parseOddsAmerican(str){if(!str)return null;str=str.trim();const n=parseFloat(str.replace(/[^0-9.\-+]/g,""));if(isNaN(n))return null;return n>=0?(n/100)+1:(100/Math.abs(n))+1;}
+    function decimalToAmerican(d){return d>=2?"+"+Math.round((d-1)*100):Math.round(-100/(d-1)).toString();}
+    function fmt$(n){return "$"+n.toFixed(2);}
+    function fmtPct(n){return n.toFixed(1)+"%";}
+    function updateAll(){const br=getBankroll();if(!br){document.getElementById("bankroll-summary").style.display="none";return;}const unit=br*(unitPct/100),maxMult=bettingStyle==="conservative"?1:bettingStyle==="moderate"?2:3;document.getElementById("unit-val").textContent=fmt$(unit);document.getElementById("max-bet").textContent=fmt$(unit*maxMult);document.getElementById("stop-loss").textContent=fmt$(unit*10);document.getElementById("bankroll-summary").style.display="block";calcKelly();calcFlat();calcParlay();}
+    function calcKelly(){const br=getBankroll(),oddsStr=document.getElementById("kelly-odds").value,probStr=document.getElementById("kelly-prob").value;if(!oddsStr||!probStr){document.getElementById("kelly-result").style.display="none";return;}const decimal=parseOdds(oddsStr),p=parseFloat(probStr)/100;if(!decimal||isNaN(p)||p<=0||p>=1){document.getElementById("kelly-result").style.display="none";return;}const b=decimal-1,q=1-p,kelly=(b*p-q)/b,ev=(b*p-q)*100,fullAmt=Math.max(0,kelly*br),unit=br*(unitPct/100);document.getElementById("kelly-full").textContent=fmt$(fullAmt);document.getElementById("kelly-half").textContent=fmt$(fullAmt/2);document.getElementById("kelly-quarter").textContent=fmt$(fullAmt/4);document.getElementById("kelly-ev").textContent=(ev>=0?"+":"")+ev.toFixed(1)+"%";document.getElementById("kelly-ev").className="br-result-val"+(ev>=0?"":" bad");document.getElementById("kelly-profit").textContent=fmt$(fullAmt*b);const recMult=bettingStyle==="conservative"?0.25:bettingStyle==="moderate"?0.5:1,recAmt=fullAmt*recMult,recUnits=unit>0?(recAmt/unit).toFixed(1):"—";document.getElementById("kelly-bet-amt").textContent=fmt$(recAmt);document.getElementById("kelly-units").textContent=`${recUnits} units based on your ${bettingStyle} style`;document.getElementById("kelly-advice").textContent=kelly<=0?"Negative EV — not recommended.":kelly<0.02?"Very small edge.":kelly<0.05?"Moderate edge — reasonable bet.":kelly<0.1?"Strong edge — good bet.":"Very high Kelly % — consider Half or Quarter Kelly.";document.getElementById("kelly-result").style.display="block";}
+    function calcFlat(){const amt=parseFloat(document.getElementById("flat-amt").value),oddsStr=document.getElementById("flat-odds").value,br=getBankroll();if(!amt||!oddsStr){document.getElementById("flat-result").style.display="none";return;}const decimal=parseOddsAmerican(oddsStr);if(!decimal){document.getElementById("flat-result").style.display="none";return;}document.getElementById("flat-profit").textContent=fmt$(amt*(decimal-1));document.getElementById("flat-payout").textContent=fmt$(amt*decimal);document.getElementById("flat-impl").textContent=fmtPct((1/decimal)*100);document.getElementById("flat-pct").textContent=fmtPct(br?(amt/br)*100:0);document.getElementById("flat-result").style.display="block";}
+    function addParlay(){const container=document.getElementById("parlay-legs"),count=container.children.length+1;const row=document.createElement("div");row.className="parlay-row";row.innerHTML=`<input class="br-input" type="text" placeholder="Leg ${count} odds e.g. -110" oninput="calcParlay()" style="flex:1;width:auto"><button class="parlay-remove" onclick="removeParlay(this)">×</button>`;container.appendChild(row);}
+    function removeParlay(btn){if(document.getElementById("parlay-legs").children.length>1){btn.closest(".parlay-row").remove();calcParlay();}}
+    function calcParlay(){const inputs=document.querySelectorAll("#parlay-legs input"),amt=parseFloat(document.getElementById("parlay-amt").value);let combined=1,prob=1,valid=true;inputs.forEach(inp=>{const d=parseOddsAmerican(inp.value);if(!d){valid=false;return;}combined*=d;prob*=(1/d);});if(!valid||combined===1||!amt){document.getElementById("parlay-result").style.display="none";return;}document.getElementById("parlay-odds").textContent=decimalToAmerican(combined);document.getElementById("parlay-profit").textContent=fmt$(amt*(combined-1));document.getElementById("parlay-payout").textContent=fmt$(amt*combined);document.getElementById("parlay-prob").textContent=fmtPct(prob*100);document.getElementById("parlay-result").style.display="block";}
+    function calcConverter(){const input=document.getElementById("conv-input").value.trim();if(!input){document.getElementById("conv-result").style.display="none";return;}let decimal=null;if(input.endsWith("%")){const p=parseFloat(input)/100;if(p>0&&p<1)decimal=1/p;}else if(input.startsWith("+")||input.startsWith("-")){const n=parseFloat(input);if(!isNaN(n))decimal=n>=0?(n/100)+1:(100/Math.abs(n))+1;}else{const n=parseFloat(input);if(!isNaN(n)&&n>1)decimal=n;}if(!decimal){document.getElementById("conv-result").style.display="none";return;}document.getElementById("conv-american").textContent=decimalToAmerican(decimal);document.getElementById("conv-decimal").textContent=decimal.toFixed(3);document.getElementById("conv-implied").textContent=fmtPct((1/decimal)*100);document.getElementById("conv-result").style.display="block";}
 
     // ── Arbitrage ─────────────────────────────────────────
     let arbOpportunities=[];
-    function findArbs(games) {
-      const opps=[];
-      games.forEach(game=>{
-        const teamBest={};
-        game.bookmakers.forEach(book=>{
-          book.markets.filter(m=>m.key==="h2h").forEach(market=>{
-            market.outcomes.forEach(outcome=>{
-              const team=outcome.name;
-              if (!teamBest[team]||outcome.price>teamBest[team].odds)
-                teamBest[team]={odds:outcome.price,book:book.title,bookKey:book.key};
-            });
-          });
-        });
-        const teamList=Object.entries(teamBest); if (teamList.length<2) return;
-        const totalImplied=teamList.reduce((sum,[,v])=>sum+(1/v.odds),0);
-        if (totalImplied<1.0) {
-          opps.push({game:game.away_team+" @ "+game.home_team,sport:game.sport,commence_time:game.commence_time,totalImplied,profitPct:((1/totalImplied)-1)*100,
-            sides:teamList.map(([team,data])=>({team,odds:data.odds,book:data.book,bookKey:data.bookKey,implied:1/data.odds}))});
-        }
-      });
-      return opps.sort((a,b)=>b.profitPct-a.profitPct);
-    }
-    function calcArbBets(opp,totalStake) {
-      return opp.sides.map(side=>({...side,betAmt:(side.implied/opp.totalImplied)*totalStake,profit:((side.implied/opp.totalImplied)*totalStake)*(side.odds-1)}));
-    }
-    function updateArbCalcs() {
-      const totalStake=parseFloat(document.getElementById("arb-bankroll").value)||1000;
-      document.querySelectorAll(".arb-card").forEach((card,i)=>{
-        const opp=arbOpportunities[i]; if (!opp) return;
-        const bets=calcArbBets(opp,totalStake),profit=totalStake*((1/opp.totalImplied)-1);
-        bets.forEach((bet,j)=>{const el=card.querySelector(`#arb-bet-${i}-${j}`);if(el)el.textContent="$"+bet.betAmt.toFixed(2);});
-        const el=card.querySelector(`#arb-guaranteed-${i}`);if(el)el.textContent="$"+profit.toFixed(2);
-      });
-    }
-    function renderArbCard(opp,idx,totalStake) {
-      const bets=calcArbBets(opp,totalStake),profit=totalStake*((1/opp.totalImplied)-1);
-      const gameTime=new Date(opp.commence_time).toLocaleString("en-US",{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
-      let sidesHTML=`<div class="arb-sides">`;
-      bets.forEach(bet=>{sidesHTML+=`<div class="arb-side"><div class="arb-side-team">${bet.team}</div><div class="arb-side-book">${bet.book}</div><div class="arb-side-odds">${decimalToAmerican(bet.odds)}</div><div class="arb-side-impl">${(bet.implied*100).toFixed(1)}% implied</div></div>`;});
-      sidesHTML+=`</div>`;
-      let calcHTML=`<div class="arb-calc"><div class="arb-calc-title">Bet calculator</div>`;
-      bets.forEach((bet,j)=>{calcHTML+=`<div class="arb-calc-row"><span class="arb-calc-label">Bet on ${bet.team} (${bet.book})</span><span class="arb-calc-val" id="arb-bet-${idx}-${j}">$${bet.betAmt.toFixed(2)}</span></div>`;});
-      calcHTML+=`<div class="arb-calc-row"><span class="arb-calc-label">Guaranteed profit</span><span class="arb-calc-val" id="arb-guaranteed-${idx}">$${profit.toFixed(2)}</span></div><div class="arb-calc-row"><span class="arb-calc-label">Total implied</span><span class="arb-calc-val neutral">${(opp.totalImplied*100).toFixed(2)}%</span></div></div>`;
-      return `<div class="arb-card"><div class="arb-header"><div><div class="arb-game">${opp.game}</div><div class="arb-sport">${SPORT_LABELS[opp.sport]||opp.sport} · ${gameTime}</div></div><div class="arb-profit-badge"><div class="arb-profit-pct">+${opp.profitPct.toFixed(2)}%</div><div class="arb-profit-label">guaranteed profit</div></div></div>${sidesHTML}${calcHTML}</div>`;
-    }
-    function renderArbPage() {
-      const display=document.getElementById("arb-display"),totalStake=parseFloat(document.getElementById("arb-bankroll").value)||1000;
-      if (!arbOpportunities.length) {
-        display.innerHTML=`<div class="arb-no-opps"><div style="font-size:32px;margin-bottom:12px">🔍</div><div style="font-size:14px;color:#aaa;margin-bottom:6px">No arb opportunities right now</div><div style="font-size:12px;color:#555">Books are in close agreement on all current games.</div></div>`;
-        document.getElementById("arb-count-display").innerHTML=""; return;
-      }
-      document.getElementById("arb-count-display").innerHTML=`<span class="arb-count-badge">${arbOpportunities.length}</span>`;
-      display.innerHTML=arbOpportunities.map((opp,i)=>renderArbCard(opp,i,totalStake)).join("");
-    }
-    async function scanArbs() {
-      document.getElementById("arb-display").innerHTML=`<div class="arb-scanning"><span class="live-dot"></span> Scanning...</div>`;
-      arbOpportunities=findArbs(allGames); renderArbPage();
-    }
+    function findArbs(games){const opps=[];games.forEach(game=>{const teamBest={};game.bookmakers.forEach(book=>{book.markets.filter(m=>m.key==="h2h").forEach(market=>{market.outcomes.forEach(outcome=>{const team=outcome.name;if(!teamBest[team]||outcome.price>teamBest[team].odds)teamBest[team]={odds:outcome.price,book:book.title,bookKey:book.key};});});});const teamList=Object.entries(teamBest);if(teamList.length<2)return;const totalImplied=teamList.reduce((sum,[,v])=>sum+(1/v.odds),0);if(totalImplied<1.0){opps.push({game:game.away_team+" @ "+game.home_team,sport:game.sport,commence_time:game.commence_time,totalImplied,profitPct:((1/totalImplied)-1)*100,sides:teamList.map(([team,data])=>({team,odds:data.odds,book:data.book,bookKey:data.bookKey,implied:1/data.odds}))});}});return opps.sort((a,b)=>b.profitPct-a.profitPct);}
+    function calcArbBets(opp,totalStake){return opp.sides.map(side=>({...side,betAmt:(side.implied/opp.totalImplied)*totalStake,profit:((side.implied/opp.totalImplied)*totalStake)*(side.odds-1)}));}
+    function updateArbCalcs(){const totalStake=parseFloat(document.getElementById("arb-bankroll").value)||1000;document.querySelectorAll(".arb-card").forEach((card,i)=>{const opp=arbOpportunities[i];if(!opp)return;const bets=calcArbBets(opp,totalStake),profit=totalStake*((1/opp.totalImplied)-1);bets.forEach((bet,j)=>{const el=card.querySelector(`#arb-bet-${i}-${j}`);if(el)el.textContent="$"+bet.betAmt.toFixed(2);});const el=card.querySelector(`#arb-guaranteed-${i}`);if(el)el.textContent="$"+profit.toFixed(2);});}
+    function renderArbCard(opp,idx,totalStake){const bets=calcArbBets(opp,totalStake),profit=totalStake*((1/opp.totalImplied)-1),gameTime=new Date(opp.commence_time).toLocaleString("en-US",{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});let sidesHTML=`<div class="arb-sides">`;bets.forEach(bet=>{sidesHTML+=`<div class="arb-side"><div class="arb-side-team">${bet.team}</div><div class="arb-side-book">${bet.book}</div><div class="arb-side-odds">${decimalToAmerican(bet.odds)}</div><div class="arb-side-impl">${(bet.implied*100).toFixed(1)}% implied</div></div>`;});sidesHTML+=`</div>`;let calcHTML=`<div class="arb-calc"><div class="arb-calc-title">Bet calculator</div>`;bets.forEach((bet,j)=>{calcHTML+=`<div class="arb-calc-row"><span class="arb-calc-label">Bet on ${bet.team} (${bet.book})</span><span class="arb-calc-val" id="arb-bet-${idx}-${j}">$${bet.betAmt.toFixed(2)}</span></div>`;});calcHTML+=`<div class="arb-calc-row"><span class="arb-calc-label">Guaranteed profit</span><span class="arb-calc-val" id="arb-guaranteed-${idx}">$${profit.toFixed(2)}</span></div><div class="arb-calc-row"><span class="arb-calc-label">Total implied</span><span class="arb-calc-val neutral">${(opp.totalImplied*100).toFixed(2)}%</span></div></div>`;return `<div class="arb-card"><div class="arb-header"><div><div class="arb-game">${opp.game}</div><div class="arb-sport">${SPORT_LABELS[opp.sport]||opp.sport} · ${gameTime}</div></div><div class="arb-profit-badge"><div class="arb-profit-pct">+${opp.profitPct.toFixed(2)}%</div><div class="arb-profit-label">guaranteed profit</div></div></div>${sidesHTML}${calcHTML}</div>`;}
+    function renderArbPage(){const display=document.getElementById("arb-display"),totalStake=parseFloat(document.getElementById("arb-bankroll").value)||1000;if(!arbOpportunities.length){display.innerHTML=`<div class="arb-no-opps"><div style="font-size:32px;margin-bottom:12px">🔍</div><div style="font-size:14px;color:#aaa;margin-bottom:6px">No arb opportunities right now</div><div style="font-size:12px;color:#555">Books are in close agreement on all current games.</div></div>`;document.getElementById("arb-count-display").innerHTML="";return;}document.getElementById("arb-count-display").innerHTML=`<span class="arb-count-badge">${arbOpportunities.length}</span>`;display.innerHTML=arbOpportunities.map((opp,i)=>renderArbCard(opp,i,totalStake)).join("");}
+    async function scanArbs(){document.getElementById("arb-display").innerHTML=`<div class="arb-scanning"><span class="live-dot"></span> Scanning...</div>`;arbOpportunities=findArbs(allGames);renderArbPage();}
 
     // ── Stats Portal ──────────────────────────────────────
-    let statsSport="nhl",searchTimeout=null;
-    function setStatsSport(sport,btn) {
-      statsSport=sport; document.querySelectorAll("#page-stats .br-style-btn").forEach(b=>b.classList.remove("active")); btn.classList.add("active");
-      document.getElementById("stats-search").value=""; document.getElementById("stats-suggestions").style.display="none";
-      document.getElementById("stats-display").innerHTML=`<div style="color:#555;font-size:13px;text-align:center;padding:40px 0">Search for a player to see their stats</div>`;
+    let statsSport = "nhl";
+    let searchTimeout = null;
+
+    const NHL_TEAMS = [
+      {abbrev:"ANA",name:"Anaheim Ducks",id:24},{abbrev:"BOS",name:"Boston Bruins",id:6},{abbrev:"BUF",name:"Buffalo Sabres",id:7},
+      {abbrev:"CGY",name:"Calgary Flames",id:20},{abbrev:"CAR",name:"Carolina Hurricanes",id:12},{abbrev:"CHI",name:"Chicago Blackhawks",id:16},
+      {abbrev:"COL",name:"Colorado Avalanche",id:21},{abbrev:"CBJ",name:"Columbus Blue Jackets",id:29},{abbrev:"DAL",name:"Dallas Stars",id:25},
+      {abbrev:"DET",name:"Detroit Red Wings",id:17},{abbrev:"EDM",name:"Edmonton Oilers",id:22},{abbrev:"FLA",name:"Florida Panthers",id:13},
+      {abbrev:"LAK",name:"Los Angeles Kings",id:26},{abbrev:"MIN",name:"Minnesota Wild",id:30},{abbrev:"MTL",name:"Montreal Canadiens",id:8},
+      {abbrev:"NSH",name:"Nashville Predators",id:18},{abbrev:"NJD",name:"New Jersey Devils",id:1},{abbrev:"NYI",name:"New York Islanders",id:2},
+      {abbrev:"NYR",name:"New York Rangers",id:3},{abbrev:"OTT",name:"Ottawa Senators",id:9},{abbrev:"PHI",name:"Philadelphia Flyers",id:4},
+      {abbrev:"PIT",name:"Pittsburgh Penguins",id:5},{abbrev:"SJS",name:"San Jose Sharks",id:28},{abbrev:"SEA",name:"Seattle Kraken",id:55},
+      {abbrev:"STL",name:"St. Louis Blues",id:19},{abbrev:"TBL",name:"Tampa Bay Lightning",id:14},{abbrev:"TOR",name:"Toronto Maple Leafs",id:10},
+      {abbrev:"UTA",name:"Utah Hockey Club",id:59},{abbrev:"VAN",name:"Vancouver Canucks",id:23},{abbrev:"VGK",name:"Vegas Golden Knights",id:54},
+      {abbrev:"WSH",name:"Washington Capitals",id:15},{abbrev:"WPG",name:"Winnipeg Jets",id:52}
+    ];
+
+    const MLB_TEAMS = [
+      {abbrev:"ARI",name:"Arizona Diamondbacks",id:109},{abbrev:"ATL",name:"Atlanta Braves",id:144},{abbrev:"BAL",name:"Baltimore Orioles",id:110},
+      {abbrev:"BOS",name:"Boston Red Sox",id:111},{abbrev:"CHC",name:"Chicago Cubs",id:112},{abbrev:"CWS",name:"Chicago White Sox",id:145},
+      {abbrev:"CIN",name:"Cincinnati Reds",id:113},{abbrev:"CLE",name:"Cleveland Guardians",id:114},{abbrev:"COL",name:"Colorado Rockies",id:115},
+      {abbrev:"DET",name:"Detroit Tigers",id:116},{abbrev:"HOU",name:"Houston Astros",id:117},{abbrev:"KC",name:"Kansas City Royals",id:118},
+      {abbrev:"LAA",name:"Los Angeles Angels",id:108},{abbrev:"LAD",name:"Los Angeles Dodgers",id:119},{abbrev:"MIA",name:"Miami Marlins",id:146},
+      {abbrev:"MIL",name:"Milwaukee Brewers",id:158},{abbrev:"MIN",name:"Minnesota Twins",id:142},{abbrev:"NYM",name:"New York Mets",id:121},
+      {abbrev:"NYY",name:"New York Yankees",id:147},{abbrev:"OAK",name:"Oakland Athletics",id:133},{abbrev:"PHI",name:"Philadelphia Phillies",id:143},
+      {abbrev:"PIT",name:"Pittsburgh Pirates",id:134},{abbrev:"SD",name:"San Diego Padres",id:135},{abbrev:"SF",name:"San Francisco Giants",id:137},
+      {abbrev:"SEA",name:"Seattle Mariners",id:136},{abbrev:"STL",name:"St. Louis Cardinals",id:138},{abbrev:"TB",name:"Tampa Bay Rays",id:139},
+      {abbrev:"TEX",name:"Texas Rangers",id:140},{abbrev:"TOR",name:"Toronto Blue Jays",id:141},{abbrev:"WSH",name:"Washington Nationals",id:120}
+    ];
+
+    function setStatsSport(sport, btn) {
+      statsSport = sport;
+      document.querySelectorAll("#page-stats .br-style-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("stats-search").value = "";
+      document.getElementById("stats-suggestions").style.display = "none";
+      showTeamGrid();
     }
-    function handleStatsSearch(val) { clearTimeout(searchTimeout); if (val.length<2){document.getElementById("stats-suggestions").style.display="none";return;} searchTimeout=setTimeout(()=>fetchSuggestions(val),400); }
-    async function fetchSuggestions(name) {
+
+    function showTeamGrid() {
+      const main = document.getElementById("stats-main");
+      const teams = statsSport === "nhl" ? NHL_TEAMS : MLB_TEAMS;
+      main.innerHTML = `
+        <div style="font-size:11px;color:#555;margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;font-weight:700">Select a team</div>
+        <div class="team-grid">
+          ${teams.map(t => `
+            <div class="team-card" onclick="showRoster('${t.abbrev}','${t.name.replace(/'/g,"\\'")}',${t.id})">
+              <div class="team-card-abbrev">${t.abbrev}</div>
+              <div class="team-card-name">${t.name}</div>
+            </div>`).join("")}
+        </div>`;
+    }
+
+    async function showRoster(abbrev, teamName, teamId) {
+      const main = document.getElementById("stats-main");
+      main.innerHTML = `
+        <button class="stats-back" onclick="showTeamGrid()">← All teams</button>
+        <div style="font-size:16px;font-weight:900;color:white;margin-bottom:12px">${teamName}</div>
+        <div style="color:#555;font-size:13px;padding:20px 0;text-align:center">Loading roster...</div>`;
+
       try {
-        const res=await fetch(`${BACKEND}/${statsSport}/search/${encodeURIComponent(name)}`);
-        const data=await res.json(),suggestions=document.getElementById("stats-suggestions");
-        const players=statsSport==="nhl"?data:(data.people||[]);
-        if (!players||!players.length){suggestions.style.display="none";return;}
-        suggestions.innerHTML=players.slice(0,5).map(p=>{
-          const nm=statsSport==="nhl"?(p.name||`${p.firstName?.default||p.firstName||""} ${p.lastName?.default||p.lastName||""}`.trim()):p.fullName;
-          const team=statsSport==="nhl"?(p.lastTeamAbbrev||""):(p.currentTeam?.name||"");
-          const id=statsSport==="nhl"?p.playerId:p.id;
-          return `<div class="suggestion-item" onclick="loadPlayerStats(${id},'${nm.replace(/'/g,"\\'")}')"><div>${nm}</div><div class="suggestion-team">${team}</div></div>`;
-        }).join(""); suggestions.style.display="block";
-      } catch(e){console.error(e);}
+        let players = [];
+        if (statsSport === "nhl") {
+          const res = await fetch(`https://api-web.nhle.com/v1/roster/${abbrev}/20252026`);
+          const data = await res.json();
+          const all = [...(data.forwards||[]), ...(data.defensemen||[]), ...(data.goalies||[])];
+          players = all.map(p => ({
+            id: p.id,
+            name: `${p.firstName?.default||""} ${p.lastName?.default||""}`.trim(),
+            pos: p.positionCode || "—",
+            num: p.sweaterNumber || ""
+          })).sort((a,b) => a.name.localeCompare(b.name));
+        } else {
+          const res = await fetch(`https://statsapi.mlb.com/api/v1/teams/${teamId}/roster?season=${new Date().getFullYear()}&rosterType=active`);
+          const data = await res.json();
+          players = (data.roster||[]).map(p => ({
+            id: p.person.id,
+            name: p.person.fullName,
+            pos: p.position?.abbreviation || "—",
+            num: p.jerseyNumber || ""
+          })).sort((a,b) => a.name.localeCompare(b.name));
+        }
+
+        if (!players.length) {
+          main.querySelector("div:last-child").textContent = "No roster data available.";
+          return;
+        }
+
+        const rosterHTML = players.map(p => `
+          <div class="roster-player" onclick="loadPlayerStats(${p.id},'${p.name.replace(/'/g,"\\'")}','${abbrev}','${teamName.replace(/'/g,"\\'")}')">
+            <div>
+              <div class="roster-player-name">${p.name}</div>
+              <div class="roster-player-pos">#${p.num} · ${p.pos}</div>
+            </div>
+            <span style="color:#378ADD;font-size:14px">›</span>
+          </div>`).join("");
+
+        main.innerHTML = `
+          <button class="stats-back" onclick="showTeamGrid()">← All teams</button>
+          <div style="font-size:16px;font-weight:900;color:white;margin-bottom:12px">${teamName}</div>
+          ${rosterHTML}`;
+      } catch(e) {
+        main.innerHTML = `<button class="stats-back" onclick="showTeamGrid()">← All teams</button><div style="color:#f87171;font-size:13px;padding:20px 0">Could not load roster.</div>`;
+      }
     }
-    async function searchPlayer() { const val=document.getElementById("stats-search").value.trim(); if (val.length>=2) fetchSuggestions(val); }
-    async function loadPlayerStats(playerId,playerName) {
-      document.getElementById("stats-suggestions").style.display="none";
-      document.getElementById("stats-search").value=playerName;
-      const display=document.getElementById("stats-display");
-      display.innerHTML=`<div style="color:#555;font-size:13px;text-align:center;padding:40px 0">Loading ${playerName}...</div>`;
-      try { if (statsSport==="nhl") await loadNHLPlayerStats(playerId,playerName,display); else await loadMLBPlayerStats(playerId,playerName,display); }
-      catch(e) { display.innerHTML=`<div style="color:#f87171;font-size:13px;padding:20px 0">Could not load stats. Try again.</div>`; }
+
+    async function loadPlayerStats(playerId, playerName, teamAbbrev, teamName) {
+      document.getElementById("stats-suggestions").style.display = "none";
+      document.getElementById("stats-search").value = "";
+      const main = document.getElementById("stats-main");
+      const backTarget = teamAbbrev ? `showRoster('${teamAbbrev}','${(teamName||"").replace(/'/g,"\\'")}',0)` : "showTeamGrid()";
+      main.innerHTML = `<button class="stats-back" onclick="${backTarget}">← Back</button><div style="color:#555;font-size:13px;text-align:center;padding:40px 0">Loading ${playerName}...</div>`;
+      try {
+        if (statsSport === "nhl") await loadNHLPlayerStats(playerId, playerName, main, backTarget);
+        else await loadMLBPlayerStats(playerId, playerName, main, backTarget);
+      } catch(e) {
+        main.innerHTML = `<button class="stats-back" onclick="${backTarget}">← Back</button><div style="color:#f87171;font-size:13px;padding:20px 0">Could not load stats.</div>`;
+      }
     }
-    async function loadNHLPlayerStats(playerId,playerName,display) {
-      const res=await fetch(`${BACKEND}/nhl/player/${playerId}`),data=await res.json();
-      const landing=data.season,gameLog=data.gameLog?.gameLog||[];
-      const featuredStats=landing?.featuredStats?.regularSeason?.subSeason;
-      const position=landing?.position||"F",team=landing?.currentTeamAbbrev||"",isGoalie=position==="G";
-      let seasonHTML="";
+
+    async function loadNHLPlayerStats(playerId, playerName, container, backTarget) {
+      const res = await fetch(`${BACKEND}/nhl/player/${playerId}`);
+      const data = await res.json();
+      const landing = data.season, gameLog = data.gameLog?.gameLog||[];
+      const featuredStats = landing?.featuredStats?.regularSeason?.subSeason;
+      const position = landing?.position||"F", team = landing?.currentTeamAbbrev||"", isGoalie = position==="G";
+      let seasonHTML = "";
       if (featuredStats) {
         if (isGoalie) {
-          seasonHTML=`<div class="stats-grid"><div class="stat-box"><div class="stat-box-val">${featuredStats.wins??"—"}</div><div class="stat-box-label">Wins</div></div><div class="stat-box"><div class="stat-box-val">${featuredStats.losses??"—"}</div><div class="stat-box-label">Losses</div></div><div class="stat-box"><div class="stat-box-val">${featuredStats.savePctg?.toFixed(3)??"—"}</div><div class="stat-box-label">SV%</div></div><div class="stat-box"><div class="stat-box-val">${featuredStats.goalsAgainstAvg?.toFixed(2)??"—"}</div><div class="stat-box-label">GAA</div></div><div class="stat-box"><div class="stat-box-val">${featuredStats.shutouts??"—"}</div><div class="stat-box-label">SO</div></div></div>`;
+          seasonHTML = `<div class="stats-grid">
+            <div class="stat-box"><div class="stat-box-val">${featuredStats.wins??"—"}</div><div class="stat-box-label">Wins</div></div>
+            <div class="stat-box"><div class="stat-box-val">${featuredStats.losses??"—"}</div><div class="stat-box-label">Losses</div></div>
+            <div class="stat-box"><div class="stat-box-val">${featuredStats.savePctg?.toFixed(3)??"—"}</div><div class="stat-box-label">SV%</div></div>
+            <div class="stat-box"><div class="stat-box-val">${featuredStats.goalsAgainstAvg?.toFixed(2)??"—"}</div><div class="stat-box-label">GAA</div></div>
+            <div class="stat-box"><div class="stat-box-val">${featuredStats.shutouts??"—"}</div><div class="stat-box-label">SO</div></div>
+          </div>`;
         } else {
-          const gp=featuredStats.gamesPlayed||1;
-          seasonHTML=`<div class="stats-grid"><div class="stat-box"><div class="stat-box-val">${featuredStats.goals??"—"}</div><div class="stat-box-label">Goals</div></div><div class="stat-box"><div class="stat-box-val">${featuredStats.assists??"—"}</div><div class="stat-box-label">Assists</div></div><div class="stat-box"><div class="stat-box-val">${featuredStats.points??"—"}</div><div class="stat-box-label">Points</div></div><div class="stat-box"><div class="stat-box-val">${featuredStats.gamesPlayed??"—"}</div><div class="stat-box-label">GP</div></div><div class="stat-box"><div class="stat-box-val">${featuredStats.plusMinus??"—"}</div><div class="stat-box-label">+/-</div></div><div class="stat-box"><div class="stat-box-val">${featuredStats.shots??"—"}</div><div class="stat-box-label">Shots</div></div><div class="stat-box"><div class="stat-box-val">${featuredStats.goals?(featuredStats.goals/gp).toFixed(2):"—"}</div><div class="stat-box-label">G/GP</div></div><div class="stat-box"><div class="stat-box-val">${featuredStats.assists?(featuredStats.assists/gp).toFixed(2):"—"}</div><div class="stat-box-label">A/GP</div></div><div class="stat-box"><div class="stat-box-val">${featuredStats.points?(featuredStats.points/gp).toFixed(2):"—"}</div><div class="stat-box-label">P/GP</div></div></div>`;
+          const gp = featuredStats.gamesPlayed||1;
+          seasonHTML = `<div class="stats-grid">
+            <div class="stat-box"><div class="stat-box-val">${featuredStats.goals??"—"}</div><div class="stat-box-label">Goals</div></div>
+            <div class="stat-box"><div class="stat-box-val">${featuredStats.assists??"—"}</div><div class="stat-box-label">Assists</div></div>
+            <div class="stat-box"><div class="stat-box-val">${featuredStats.points??"—"}</div><div class="stat-box-label">Points</div></div>
+            <div class="stat-box"><div class="stat-box-val">${featuredStats.gamesPlayed??"—"}</div><div class="stat-box-label">GP</div></div>
+            <div class="stat-box"><div class="stat-box-val">${featuredStats.plusMinus??"—"}</div><div class="stat-box-label">+/-</div></div>
+            <div class="stat-box"><div class="stat-box-val">${featuredStats.shots??"—"}</div><div class="stat-box-label">Shots</div></div>
+            <div class="stat-box"><div class="stat-box-val">${featuredStats.goals?(featuredStats.goals/gp).toFixed(2):"—"}</div><div class="stat-box-label">G/GP</div></div>
+            <div class="stat-box"><div class="stat-box-val">${featuredStats.assists?(featuredStats.assists/gp).toFixed(2):"—"}</div><div class="stat-box-label">A/GP</div></div>
+            <div class="stat-box"><div class="stat-box-val">${featuredStats.points?(featuredStats.points/gp).toFixed(2):"—"}</div><div class="stat-box-label">P/GP</div></div>
+          </div>`;
         }
       }
-      const last5=gameLog.slice(0,5),avgPts=last5.length?last5.reduce((a,g)=>a+(g.points||0),0)/last5.length:0;
-      const seasonPpg=featuredStats?.points&&featuredStats?.gamesPlayed?featuredStats.points/featuredStats.gamesPlayed:0;
-      const hotColdBadge=avgPts>seasonPpg*1.2?`<span class="hot-badge">🔥 Hot</span>`:avgPts<seasonPpg*0.6&&seasonPpg>0?`<span class="cold-badge">❄️ Cold</span>`:"";
-      let gameLogHTML="";
+      const last5 = gameLog.slice(0,5);
+      const avgPts = last5.length?last5.reduce((a,g)=>a+(g.points||0),0)/last5.length:0;
+      const seasonPpg = featuredStats?.points&&featuredStats?.gamesPlayed?featuredStats.points/featuredStats.gamesPlayed:0;
+      const hotColdBadge = avgPts>seasonPpg*1.2?`<span class="hot-badge">🔥 Hot</span>`:avgPts<seasonPpg*0.6&&seasonPpg>0?`<span class="cold-badge">❄️ Cold</span>`:"";
+      let gameLogHTML = "";
       if (last5.length) {
-        gameLogHTML=`<div class="game-log-row game-log-header"><span>Date</span><span>Opp</span><span>G</span><span>A</span><span>P</span><span>SOG</span><span>TOI</span></div>`;
+        gameLogHTML = `<div class="game-log-row game-log-header"><span>Date</span><span>Opp</span><span>G</span><span>A</span><span>P</span><span>SOG</span><span>TOI</span></div>`;
         last5.forEach(g=>{const pts=(g.goals||0)+(g.assists||0);gameLogHTML+=`<div class="game-log-row"><span style="color:#555">${g.gameDate?.slice(5)||"—"}</span><span style="color:#aaa">${g.opponentAbbrev||"—"}</span><span style="font-weight:700">${g.goals??0}</span><span style="font-weight:700">${g.assists??0}</span><span style="font-weight:700;color:${pts>=2?"#22c55e":pts===0?"#f87171":"white"}">${pts}</span><span>${g.shots??0}</span><span style="color:#555">${g.toi?.slice(0,5)||"—"}</span></div>`;});
       }
-      display.innerHTML=`<div class="stats-card"><div class="stats-name">${playerName} ${hotColdBadge}</div><div class="stats-meta">${team} · ${position} · 2025-26 season</div><div class="stats-section">Season stats</div>${seasonHTML||`<div style="color:#555;font-size:12px">No season stats available</div>`}<div class="stats-section">Last 5 games</div>${gameLogHTML||`<div style="color:#555;font-size:12px">No recent games found</div>`}</div>`;
+      container.innerHTML = `
+        <button class="stats-back" onclick="${backTarget}">← Back</button>
+        <div class="stats-card">
+          <div class="stats-name">${playerName} ${hotColdBadge}</div>
+          <div class="stats-meta">${team} · ${position} · 2025-26 season</div>
+          <div class="stats-section">Season stats</div>
+          ${seasonHTML||`<div style="color:#555;font-size:12px">No season stats available</div>`}
+          <div class="stats-section">Last 5 games</div>
+          ${gameLogHTML||`<div style="color:#555;font-size:12px">No recent games found</div>`}
+        </div>`;
     }
-    async function loadMLBPlayerStats(playerId,playerName,display) {
-      const res=await fetch(`${BACKEND}/mlb/player/${playerId}`),data=await res.json();
-      const hitStats=data.hitting?.stats?.[0]?.splits?.[0]?.stat,pitStats=data.pitching?.stats?.[0]?.splits?.[0]?.stat;
-      const gameLogSplits=data.gameLog?.stats?.[0]?.splits||[],last10=gameLogSplits.slice(-10).reverse();
-      let seasonHTML="";
+
+    async function loadMLBPlayerStats(playerId, playerName, container, backTarget) {
+      const res = await fetch(`${BACKEND}/mlb/player/${playerId}`);
+      const data = await res.json();
+      const hitStats = data.hitting?.stats?.[0]?.splits?.[0]?.stat;
+      const pitStats = data.pitching?.stats?.[0]?.splits?.[0]?.stat;
+      const gameLogSplits = data.gameLog?.stats?.[0]?.splits||[];
+      const last10 = gameLogSplits.slice(-10).reverse();
+      let seasonHTML = "";
       if (hitStats) {
-        seasonHTML=`<div class="stats-grid"><div class="stat-box"><div class="stat-box-val">${hitStats.avg||"—"}</div><div class="stat-box-label">AVG</div></div><div class="stat-box"><div class="stat-box-val">${hitStats.obp||"—"}</div><div class="stat-box-label">OBP</div></div><div class="stat-box"><div class="stat-box-val">${hitStats.slg||"—"}</div><div class="stat-box-label">SLG</div></div><div class="stat-box"><div class="stat-box-val">${hitStats.ops||"—"}</div><div class="stat-box-label">OPS</div></div><div class="stat-box"><div class="stat-box-val">${hitStats.homeRuns??"—"}</div><div class="stat-box-label">HR</div></div><div class="stat-box"><div class="stat-box-val">${hitStats.rbi??"—"}</div><div class="stat-box-label">RBI</div></div><div class="stat-box"><div class="stat-box-val">${hitStats.stolenBases??"—"}</div><div class="stat-box-label">SB</div></div><div class="stat-box"><div class="stat-box-val">${hitStats.strikeOuts??"—"}</div><div class="stat-box-label">K</div></div><div class="stat-box"><div class="stat-box-val">${hitStats.baseOnBalls??"—"}</div><div class="stat-box-label">BB</div></div></div>`;
+        seasonHTML = `<div class="stats-grid">
+          <div class="stat-box"><div class="stat-box-val">${hitStats.avg||"—"}</div><div class="stat-box-label">AVG</div></div>
+          <div class="stat-box"><div class="stat-box-val">${hitStats.obp||"—"}</div><div class="stat-box-label">OBP</div></div>
+          <div class="stat-box"><div class="stat-box-val">${hitStats.slg||"—"}</div><div class="stat-box-label">SLG</div></div>
+          <div class="stat-box"><div class="stat-box-val">${hitStats.ops||"—"}</div><div class="stat-box-label">OPS</div></div>
+          <div class="stat-box"><div class="stat-box-val">${hitStats.homeRuns??"—"}</div><div class="stat-box-label">HR</div></div>
+          <div class="stat-box"><div class="stat-box-val">${hitStats.rbi??"—"}</div><div class="stat-box-label">RBI</div></div>
+          <div class="stat-box"><div class="stat-box-val">${hitStats.stolenBases??"—"}</div><div class="stat-box-label">SB</div></div>
+          <div class="stat-box"><div class="stat-box-val">${hitStats.strikeOuts??"—"}</div><div class="stat-box-label">K</div></div>
+          <div class="stat-box"><div class="stat-box-val">${hitStats.baseOnBalls??"—"}</div><div class="stat-box-label">BB</div></div>
+        </div>`;
       } else if (pitStats) {
-        seasonHTML=`<div class="stats-grid"><div class="stat-box"><div class="stat-box-val">${pitStats.era||"—"}</div><div class="stat-box-label">ERA</div></div><div class="stat-box"><div class="stat-box-val">${pitStats.whip||"—"}</div><div class="stat-box-label">WHIP</div></div><div class="stat-box"><div class="stat-box-val">${pitStats.wins??"—"}-${pitStats.losses??"—"}</div><div class="stat-box-label">W-L</div></div><div class="stat-box"><div class="stat-box-val">${pitStats.strikeOuts??"—"}</div><div class="stat-box-label">K</div></div><div class="stat-box"><div class="stat-box-val">${pitStats.inningsPitched||"—"}</div><div class="stat-box-label">IP</div></div><div class="stat-box"><div class="stat-box-val">${pitStats.baseOnBalls??"—"}</div><div class="stat-box-label">BB</div></div></div>`;
+        seasonHTML = `<div class="stats-grid">
+          <div class="stat-box"><div class="stat-box-val">${pitStats.era||"—"}</div><div class="stat-box-label">ERA</div></div>
+          <div class="stat-box"><div class="stat-box-val">${pitStats.whip||"—"}</div><div class="stat-box-label">WHIP</div></div>
+          <div class="stat-box"><div class="stat-box-val">${pitStats.wins??"—"}-${pitStats.losses??"—"}</div><div class="stat-box-label">W-L</div></div>
+          <div class="stat-box"><div class="stat-box-val">${pitStats.strikeOuts??"—"}</div><div class="stat-box-label">K</div></div>
+          <div class="stat-box"><div class="stat-box-val">${pitStats.inningsPitched||"—"}</div><div class="stat-box-label">IP</div></div>
+          <div class="stat-box"><div class="stat-box-val">${pitStats.baseOnBalls??"—"}</div><div class="stat-box-label">BB</div></div>
+        </div>`;
       }
-      let hotColdBadge="";
+      let hotColdBadge = "";
       if (hitStats&&last10.length>=5) {
         const rH=last10.slice(0,5).reduce((a,g)=>a+(g.stat?.hits||0),0),rAB=last10.slice(0,5).reduce((a,g)=>a+(g.stat?.atBats||1),0);
         const rAvg=rH/rAB,sAvg=parseFloat(hitStats.avg)||0;
         if (rAvg>sAvg*1.15) hotColdBadge=`<span class="hot-badge">🔥 Hot</span>`;
         else if (rAvg<sAvg*0.7) hotColdBadge=`<span class="cold-badge">❄️ Cold</span>`;
       }
-      let gameLogHTML="";
+      let gameLogHTML = "";
       if (last10.length&&hitStats) {
-        gameLogHTML=`<div class="game-log-row game-log-header"><span>Date</span><span>Opp</span><span>AB</span><span>H</span><span>HR</span><span>RBI</span><span>K</span></div>`;
+        gameLogHTML = `<div class="game-log-row game-log-header"><span>Date</span><span>Opp</span><span>AB</span><span>H</span><span>HR</span><span>RBI</span><span>K</span></div>`;
         last10.forEach(g=>{const hits=g.stat?.hits||0;gameLogHTML+=`<div class="game-log-row"><span style="color:#555">${g.date?.slice(5)||"—"}</span><span style="color:#aaa">${g.opponent?.abbreviation||"—"}</span><span>${g.stat?.atBats||0}</span><span style="font-weight:700;color:${hits>=3?"#22c55e":hits===0?"#f87171":"white"}">${hits}</span><span>${g.stat?.homeRuns||0}</span><span>${g.stat?.rbi||0}</span><span>${g.stat?.strikeOuts||0}</span></div>`;});
       }
-      display.innerHTML=`<div class="stats-card"><div class="stats-name">${playerName} ${hotColdBadge}</div><div class="stats-meta">${new Date().getFullYear()} season</div><div class="stats-section">${hitStats?"Hitting":"Pitching"} stats</div>${seasonHTML||`<div style="color:#555;font-size:12px">No season stats available</div>`}<div class="stats-section">Last ${last10.length} games</div>${gameLogHTML||`<div style="color:#555;font-size:12px">No recent games found</div>`}</div>`;
+      container.innerHTML = `
+        <button class="stats-back" onclick="${backTarget}">← Back</button>
+        <div class="stats-card">
+          <div class="stats-name">${playerName} ${hotColdBadge}</div>
+          <div class="stats-meta">${new Date().getFullYear()} season</div>
+          <div class="stats-section">${hitStats?"Hitting":"Pitching"} stats</div>
+          ${seasonHTML||`<div style="color:#555;font-size:12px">No season stats available</div>`}
+          <div class="stats-section">Last ${last10.length} games</div>
+          ${gameLogHTML||`<div style="color:#555;font-size:12px">No recent games found</div>`}
+        </div>`;
     }
+
+    // Search still works too
+    let searchTimeout2 = null;
+    function handleStatsSearch(val) {
+      clearTimeout(searchTimeout2);
+      if (val.length<2){document.getElementById("stats-suggestions").style.display="none";return;}
+      searchTimeout2=setTimeout(()=>fetchSuggestions(val),400);
+    }
+    async function fetchSuggestions(name) {
+      try {
+        const res=await fetch(`${BACKEND}/${statsSport}/search/${encodeURIComponent(name)}`);
+        const data=await res.json(),suggestions=document.getElementById("stats-suggestions");
+        const players=statsSport==="nhl"?data:(data.people||[]);
+        if(!players||!players.length){suggestions.style.display="none";return;}
+        suggestions.innerHTML=players.slice(0,5).map(p=>{
+          const nm=statsSport==="nhl"?(p.name||`${p.firstName?.default||p.firstName||""} ${p.lastName?.default||p.lastName||""}`.trim()):p.fullName;
+          const team=statsSport==="nhl"?(p.lastTeamAbbrev||""):(p.currentTeam?.name||"");
+          const id=statsSport==="nhl"?p.playerId:p.id;
+          return `<div class="suggestion-item" onclick="loadPlayerStats(${id},'${nm.replace(/'/g,"\\'")}','','')"><div>${nm}</div><div class="suggestion-team">${team}</div></div>`;
+        }).join("");
+        suggestions.style.display="block";
+      } catch(e){console.error(e);}
+    }
+    async function searchPlayer(){const val=document.getElementById("stats-search").value.trim();if(val.length>=2)fetchSuggestions(val);}
 
     // ── Odds page ─────────────────────────────────────────
     const BOOK_LINKS={"draftkings":"https://www.draftkings.com/sportsbook","fanduel":"https://www.fanduel.com/sportsbook","betmgm":"https://www.betmgm.com/sports","bet365":"https://www.bet365.com","williamhill":"https://www.williamhill.com/us","caesars":"https://www.caesars.com/sportsbook","hardrockbet":"https://www.hardrockbet.com","novig":"https://www.novig.com","betonlineag":"https://www.betonline.ag","mybookieag":"https://www.mybookie.ag","bovada":"https://www.bovada.lv","pointsbetus":"https://www.pointsbet.com","unibet_us":"https://www.unibet.com","espnbet":"https://www.espnbet.com","fliff":"https://www.getfliff.com"};
@@ -721,48 +763,16 @@
     function renderFiltered(){const app=document.getElementById("app"),filtered=currentFilter==="all"?allGames:allGames.filter(g=>g.sport===currentFilter);if(!filtered.length){app.innerHTML=`<div class="no-games">No games found.</div>`;return;}app.innerHTML=filtered.map(renderGame).join("");}
     function setFilter(sport,btn){currentFilter=sport;document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");renderFiltered();}
 
-    function forceRefresh(e) {
-      e.preventDefault();
-      try{sessionStorage.removeItem(CACHE_KEY);}catch(e){}
-      allGames=[];arbOpportunities=[];
-      document.getElementById("app").innerHTML=`<div class="loading">Refreshing odds...</div>`;
-      loadAllOdds();
-    }
+    function forceRefresh(e){e.preventDefault();try{sessionStorage.removeItem(CACHE_KEY);}catch(e){}allGames=[];arbOpportunities=[];document.getElementById("app").innerHTML=`<div class="loading">Refreshing odds...</div>`;loadAllOdds();}
 
-    async function loadAllOdds() {
+    async function loadAllOdds(){
       const app=document.getElementById("app"),sub=document.getElementById("odds-sub");
-      try {
-        const cached=sessionStorage.getItem(CACHE_KEY);
-        if(cached){
-          const{timestamp,games}=JSON.parse(cached);
-          if(Date.now()-timestamp<CACHE_DURATION){
-            allGames=games;renderFiltered();
-            arbOpportunities=findArbs(allGames);renderArbPage();
-            const age=Math.round((Date.now()-timestamp)/1000);
-            sub.innerHTML=`<span class="live-dot"></span>Cached — updated ${age}s ago · <a href="#" onclick="forceRefresh(event)" style="color:#378ADD">Refresh now</a>`;
-            return;
-          }
-        }
-      }catch(e){}
-      try {
-        const freshGames=[];
-        for(const sport of SPORTS){
-          const res=await fetch(`https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${API_KEY}&regions=us,us2&markets=h2h&oddsFormat=decimal`);
-          if(!res.ok)throw new Error("API error "+res.status);
-          const games=await res.json();
-          games.forEach(g=>{g.bookmakers=g.bookmakers.filter(b=>ALL_BOOKS.includes(b.key));if(g.bookmakers.length>0)freshGames.push({...g,sport});});
-        }
-        allGames=freshGames;
-        try{sessionStorage.setItem(CACHE_KEY,JSON.stringify({timestamp:Date.now(),games:allGames}));}catch(e){}
-        renderFiltered();
-        arbOpportunities=findArbs(allGames);renderArbPage();
-        sub.innerHTML=`<span class="live-dot"></span>Live odds · <a href="#" onclick="forceRefresh(event)" style="color:#378ADD">Refresh</a>`;
-      }catch(err){
-        app.innerHTML=`<div class="error">Could not load odds.<br><small>${err.message}</small></div>`;
-      }
+      try{const cached=sessionStorage.getItem(CACHE_KEY);if(cached){const{timestamp,games}=JSON.parse(cached);if(Date.now()-timestamp<CACHE_DURATION){allGames=games;renderFiltered();arbOpportunities=findArbs(allGames);renderArbPage();const age=Math.round((Date.now()-timestamp)/1000);sub.innerHTML=`<span class="live-dot"></span>Cached — updated ${age}s ago · <a href="#" onclick="forceRefresh(event)" style="color:#378ADD">Refresh now</a>`;return;}}}catch(e){}
+      try{const freshGames=[];for(const sport of SPORTS){const res=await fetch(`https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${API_KEY}&regions=us,us2&markets=h2h&oddsFormat=decimal`);if(!res.ok)throw new Error("API error "+res.status);const games=await res.json();games.forEach(g=>{g.bookmakers=g.bookmakers.filter(b=>ALL_BOOKS.includes(b.key));if(g.bookmakers.length>0)freshGames.push({...g,sport});});}allGames=freshGames;try{sessionStorage.setItem(CACHE_KEY,JSON.stringify({timestamp:Date.now(),games:allGames}));}catch(e){}renderFiltered();arbOpportunities=findArbs(allGames);renderArbPage();sub.innerHTML=`<span class="live-dot"></span>Live odds · <a href="#" onclick="forceRefresh(event)" style="color:#378ADD">Refresh</a>`;}catch(err){app.innerHTML=`<div class="error">Could not load odds.<br><small>${err.message}</small></div>`;}
     }
 
     initBookFilter();
+    showTeamGrid();
     loadAllOdds();
   </script>
 </body>
