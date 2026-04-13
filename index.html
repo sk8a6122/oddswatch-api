@@ -814,8 +814,12 @@
     }
 
     // ── Stripe checkout ───────────────────────────────────
-    async function startCheckout(tier) {
+   async function startCheckout(tier) {
       if (!currentUser) { openAuthModal("signup"); return; }
+      if (TIER_RANK[currentTier] > TIER_RANK[tier]) {
+        alert("To switch to a lower plan, please cancel your current subscription from your Stripe billing portal, then sign up for the new plan. Email support@chasetheodds.com for help!");
+        return;
+      }
       const btn=document.getElementById(tier+"-btn");
       btn.textContent="Loading..."; btn.disabled=true;
       try {
