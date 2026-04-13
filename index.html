@@ -860,7 +860,8 @@
 
     // ── Nuke ─────────────────────────────────────────────
    function nukeIcon(size) {
-      return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      return `<span style="font-size:${size}px;filter:sepia(1) saturate(5) hue-rotate(5deg)">☢️</span>`;
+    }
         <circle cx="50" cy="50" r="50" fill="#f59e0b"/>
         <path d="M50 50 L15 82 A42 42 0 0 1 15 18 Z" fill="#111"/>
         <path d="M50 50 L85 18 A42 42 0 0 1 85 82 Z" fill="#111"/>
