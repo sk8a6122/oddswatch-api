@@ -36,8 +36,6 @@
     .book-btn { padding: 5px 10px; border-radius: 6px; border: 1px solid #22c55e; background: #0d2b1a; color: #22c55e; font-size: 11px; font-weight: 600; cursor: pointer; }
     .book-btn.off { background: transparent; border-color: #2a2d3a; color: #555; }
     .game { background: #1a1d26; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
-    .game-header { cursor: pointer; }
-    .game-header:hover h2 { color: #85B7EB; }
     .game h2 { font-size: 14px; font-weight: 600; margin-bottom: 4px; transition: color .15s; }
     .game-time { font-size: 11px; color: #555; margin-bottom: 10px; }
     .sport-tag { font-size: 10px; color: #555; margin-bottom: 6px; }
@@ -126,7 +124,6 @@
     .br-style-btn { padding: 6px 14px; border-radius: 6px; border: 1px solid #2a2d3a; background: transparent; color: #888; font-size: 12px; cursor: pointer; transition: all .15s; }
     .br-style-btn:hover { border-color: #555; color: white; }
     .br-style-btn.active { background: #0d2b1a; border-color: #22c55e; color: #22c55e; }
-    .br-info { font-size: 11px; color: #555; margin-top: 8px; line-height: 1.6; }
     .br-highlight { background: #0d2b1a; border: 1px solid #22c55e; border-radius: 8px; padding: 12px 14px; margin-top: 10px; }
     .br-highlight-title { font-size: 12px; font-weight: 700; color: #22c55e; margin-bottom: 4px; }
     .br-highlight-val { font-size: 22px; font-weight: 900; color: white; }
@@ -250,7 +247,6 @@
     .tier-bettor { background: #1a3a5c; color: #85B7EB; border: 1px solid #378ADD; }
     .tier-sharp { background: #2a1a5c; color: #a78bfa; border: 1px solid #7c3aed; }
     .tier-edge { background: #1a2a0d; color: #22c55e; border: 1px solid #22c55e; }
-    .nuke-icon { display: inline-block; vertical-align: middle; }
   </style>
 </head>
 <body>
@@ -265,20 +261,7 @@
       <button class="nav-tab" onclick="switchPage('arb',this)">Arb <span id="arb-count-display"></span></button>
       <button class="nav-tab" onclick="switchPage('stats',this)">Stats</button>
       <button class="nav-tab" onclick="switchPage('bankroll',this)">Bankroll</button>
-      <button class="nav-tab nuke-tab" onclick="switchPage('nuke',this)">
-        <svg class="nuke-icon" width="13" height="13" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="50" cy="50" r="48" fill="#f59e0b"/>
-          <circle cx="50" cy="50" r="13" fill="#111"/>
-          <path d="M50 37 L24 82 L50 64 Z" fill="#111"/>
-          <path d="M50 37 L76 82 L50 64 Z" fill="#f59e0b"/>
-          <path d="M50 64 L24 82 L76 82 Z" fill="#f59e0b"/>
-          <path d="M37 50 L5 32 L28 50 Z" fill="#f59e0b"/>
-          <path d="M37 50 L5 32 L16 60 Z" fill="#111"/>
-          <path d="M63 50 L95 32 L72 50 Z" fill="#f59e0b"/>
-          <path d="M63 50 L95 32 L84 60 Z" fill="#111"/>
-        </svg>
-        Nuke
-      </button>
+      <button class="nav-tab nuke-tab" onclick="switchPage('nuke',this)">☢️ Nuke</button>
       <button class="nav-tab" onclick="switchPage('pricing',this)">Upgrade</button>
       <button class="nav-tab" onclick="switchPage('community',this)">Community</button>
     </div>
@@ -290,7 +273,6 @@
     </div>
   </div>
 
-  <!-- AUTH MODAL -->
   <div class="modal-overlay" id="auth-modal" style="display:none" onclick="if(event.target===this)closeAuthModal()">
     <div class="modal">
       <div class="modal-title" id="auth-title">Create account</div>
@@ -438,7 +420,7 @@
     <div class="br-section">
       <div class="br-title"><div class="br-title-icon">?</div> Bankroll guide</div>
       <div style="font-size:12px;color:#aaa;line-height:1.8">
-        <div style="margin-bottom:10px"><span style="color:#22c55e;font-weight:700">What is a unit?</span><br>A fixed % of your bankroll. $1,000 at 2% = $20/unit. Enter your bankroll above to see your unit breakdown.</div>
+        <div style="margin-bottom:10px"><span style="color:#22c55e;font-weight:700">What is a unit?</span><br>A fixed % of your bankroll. $1,000 at 2% = $20/unit. Enter your bankroll above to see your exact unit breakdown.</div>
         <div style="margin-bottom:10px"><span style="color:#22c55e;font-weight:700">Kelly Criterion</span><br>Optimal bet size based on odds and your win probability.</div>
         <div style="margin-bottom:10px"><span style="color:#22c55e;font-weight:700">Stop loss rule</span><br>Never risk more than 10 units in a single day.</div>
         <div><span style="color:#22c55e;font-weight:700">Positive EV</span><br>Your true win probability exceeds what the odds imply.</div>
@@ -450,22 +432,9 @@
   <div class="page" id="page-nuke">
     <div style="margin-top:12px">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px">
-        <div style="display:flex;align-items:center;gap:10px">
-          <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="50" cy="50" r="48" fill="#f59e0b"/>
-            <circle cx="50" cy="50" r="13" fill="#111"/>
-            <path d="M50 37 L24 82 L50 64 Z" fill="#111"/>
-            <path d="M50 37 L76 82 L50 64 Z" fill="#f59e0b"/>
-            <path d="M50 64 L24 82 L76 82 Z" fill="#f59e0b"/>
-            <path d="M37 50 L5 32 L28 50 Z" fill="#f59e0b"/>
-            <path d="M37 50 L5 32 L16 60 Z" fill="#111"/>
-            <path d="M63 50 L95 32 L72 50 Z" fill="#f59e0b"/>
-            <path d="M63 50 L95 32 L84 60 Z" fill="#111"/>
-          </svg>
-          <div>
-            <div style="font-size:22px;font-weight:900;color:white">Nuke</div>
-            <div style="font-size:12px;color:#555;margin-top:1px">All odds spikes across every sport — sorted by size</div>
-          </div>
+        <div>
+          <div style="font-size:22px;font-weight:900;color:white">☢️ Nuke</div>
+          <div style="font-size:12px;color:#555;margin-top:1px">All odds spikes across every sport — sorted by size</div>
         </div>
         <button onclick="buildNukePage()" style="padding:8px 16px;background:#1a1200;border:1px solid #f59e0b;border-radius:6px;color:#f59e0b;font-size:12px;font-weight:700;cursor:pointer">⟳ Rescan</button>
       </div>
@@ -504,7 +473,7 @@
           <li class="no">Player props &amp; alternate lines</li>
           <li class="no">Goalie &amp; pitcher matchups</li>
           <li class="no">Head-to-head history</li>
-          <li class="no">Nuke feed</li>
+          <li class="no">☢️ Nuke feed</li>
           <li class="no">Arb detector</li>
           <li class="no">Auto-refresh odds</li>
         </ul>
@@ -521,7 +490,7 @@
           <li class="yes">Goalie &amp; pitcher matchups</li>
           <li class="yes">Head-to-head history</li>
           <li class="yes">Auto-refresh every 2 minutes</li>
-          <li class="no">Nuke feed (spikes all in one place)</li>
+          <li class="no">☢️ Nuke feed</li>
           <li class="no">Arb detector</li>
           <li class="no">Line movement tracker</li>
         </ul>
@@ -534,12 +503,7 @@
         <div class="pricing-desc">All the tools sharp bettors use to move fast.</div>
         <ul class="pricing-features">
           <li class="yes">Everything in Bettor</li>
-          <li class="yes">
-            <span style="display:inline-flex;align-items:center;gap:4px">
-              <svg width="11" height="11" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="48" fill="#f59e0b"/><circle cx="50" cy="50" r="13" fill="#111"/><path d="M50 37 L24 82 L50 64 Z" fill="#111"/><path d="M50 37 L76 82 L50 64 Z" fill="#f59e0b"/><path d="M50 64 L24 82 L76 82 Z" fill="#f59e0b"/><path d="M37 50 L5 32 L28 50 Z" fill="#f59e0b"/><path d="M37 50 L5 32 L16 60 Z" fill="#111"/><path d="M63 50 L95 32 L72 50 Z" fill="#f59e0b"/><path d="M63 50 L95 32 L84 60 Z" fill="#111"/></svg>
-              Nuke feed — all spikes in one place
-            </span>
-          </li>
+          <li class="yes">☢️ Nuke feed — all spikes in one place</li>
           <li class="yes">Auto-refresh every 60 seconds</li>
           <li class="no">Arb detector</li>
           <li class="no">Line movement tracker</li>
@@ -589,15 +553,9 @@
         <div class="br-title"><div class="br-title-icon" style="background:#378ADD">@</div> Follow along</div>
         <p style="font-size:13px;color:#555;margin-bottom:16px">Socials coming soon — follow for picks, updates, and new features.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <a href="https://twitter.com/ChaseTheOdds" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:#12141c;border:1px solid #2a2d3a;border-radius:8px;text-decoration:none;color:#aaa;font-size:13px;font-weight:600" onmouseover="this.style.borderColor='#378ADD'" onmouseout="this.style.borderColor='#2a2d3a'">
-            <span style="font-size:16px">𝕏</span> Twitter / X
-          </a>
-          <a href="https://instagram.com/ChaseTheOdds" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:#12141c;border:1px solid #2a2d3a;border-radius:8px;text-decoration:none;color:#aaa;font-size:13px;font-weight:600" onmouseover="this.style.borderColor='#e1306c'" onmouseout="this.style.borderColor='#2a2d3a'">
-            <span style="font-size:16px">📷</span> Instagram
-          </a>
-          <a href="https://facebook.com/ChaseTheOdds" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:#12141c;border:1px solid #2a2d3a;border-radius:8px;text-decoration:none;color:#aaa;font-size:13px;font-weight:600" onmouseover="this.style.borderColor='#1877f2'" onmouseout="this.style.borderColor='#2a2d3a'">
-            <span style="font-size:16px">👍</span> Facebook
-          </a>
+          <a href="https://twitter.com/ChaseTheOdds" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:#12141c;border:1px solid #2a2d3a;border-radius:8px;text-decoration:none;color:#aaa;font-size:13px;font-weight:600" onmouseover="this.style.borderColor='#378ADD'" onmouseout="this.style.borderColor='#2a2d3a'"><span style="font-size:16px">𝕏</span> Twitter / X</a>
+          <a href="https://instagram.com/ChaseTheOdds" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:#12141c;border:1px solid #2a2d3a;border-radius:8px;text-decoration:none;color:#aaa;font-size:13px;font-weight:600" onmouseover="this.style.borderColor='#e1306c'" onmouseout="this.style.borderColor='#2a2d3a'"><span style="font-size:16px">📷</span> Instagram</a>
+          <a href="https://facebook.com/ChaseTheOdds" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:#12141c;border:1px solid #2a2d3a;border-radius:8px;text-decoration:none;color:#aaa;font-size:13px;font-weight:600" onmouseover="this.style.borderColor='#1877f2'" onmouseout="this.style.borderColor='#2a2d3a'"><span style="font-size:16px">👍</span> Facebook</a>
         </div>
       </div>
       <div class="br-section">
@@ -617,8 +575,11 @@
   </div>
 
   <script>
+    // ── Config — PASTE YOUR API KEY BELOW ────────────────
     const API_KEY = "5ae5320575a8bd9dd920f4abdb1d3acd";
-    
+    const ODDS_ENABLED = true;
+    // ─────────────────────────────────────────────────────
+
     const SUPABASE_URL = "https://jpdayopqxrmnrvmvmpoi.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpwZGF5b3BxeHJtbnJ2bXZtcG9pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMjQwNDYsImV4cCI6MjA5MTYwMDA0Nn0.6vQm7VxRZmMgsTzutZCVHJea8Ez0yaba53QyXluR7Cc";
     const BACKEND = "https://oddswatch-api.onrender.com";
@@ -636,55 +597,42 @@
     else { document.getElementById("logo-img").style.display="none"; document.getElementById("logo-text").style.display="block"; }
 
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    let currentUser = null;
-    let currentTier = "free";
-    let authMode = "signup";
-    let appliedPromo = null;
-    let autoRefreshTimer = null;
+    let currentUser=null, currentTier="free", authMode="signup", appliedPromo=null, autoRefreshTimer=null;
     const TIER_RANK = { free:0, bettor:1, sharp:2, edge:3 };
-    function hasTier(required) { return TIER_RANK[currentTier] >= TIER_RANK[required]; }
-    function cap(s) { return s.charAt(0).toUpperCase()+s.slice(1); }
-    function fmt$(n) { return "$"+n.toFixed(2); }
-    function fmtPct(n) { return n.toFixed(1)+"%"; }
+    function hasTier(r){return TIER_RANK[currentTier]>=TIER_RANK[r];}
+    function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+    function fmt$(n){return "$"+n.toFixed(2);}
+    function fmtPct(n){return n.toFixed(1)+"%";}
+    function fmtOdds(d){return d>=2.0?"+"+Math.round((d-1)*100):"-"+Math.round(100/(d-1));}
+    function decimalToAmerican(d){return d>=2?"+"+Math.round((d-1)*100):Math.round(-100/(d-1)).toString();}
 
-    async function initAuth() {
-      const { data: { session } } = await sb.auth.getSession();
-      if (session?.user) await setUser(session.user);
-      else updateNavLoggedOut();
-      sb.auth.onAuthStateChange(async (event, session) => {
-        if (session?.user) await setUser(session.user);
-        else { currentUser=null; currentTier="free"; updateNavLoggedOut(); stopAutoRefresh(); }
+    async function initAuth(){
+      const {data:{session}}=await sb.auth.getSession();
+      if(session?.user) await setUser(session.user); else updateNavLoggedOut();
+      sb.auth.onAuthStateChange(async(event,session)=>{
+        if(session?.user) await setUser(session.user);
+        else{currentUser=null;currentTier="free";updateNavLoggedOut();stopAutoRefresh();}
       });
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("success")==="true") {
-        setTimeout(()=>{ alert("🎉 Subscription active! Welcome to ChaseTheOdds."); window.history.replaceState({}, "", window.location.pathname); },800);
-      }
-      if (params.get("tipped")==="true") {
-        setTimeout(()=>{ alert("❤️ Thank you so much for your support!"); window.history.replaceState({}, "", window.location.pathname); },800);
-      }
+      const params=new URLSearchParams(window.location.search);
+      if(params.get("success")==="true"){setTimeout(()=>{alert("🎉 Subscription active! Welcome to ChaseTheOdds.");window.history.replaceState({},"",window.location.pathname);},800);}
+      if(params.get("tipped")==="true"){setTimeout(()=>{alert("❤️ Thank you so much for your support!");window.history.replaceState({},"",window.location.pathname);},800);}
     }
 
-    async function setUser(user) {
-      currentUser = user;
-      try {
-        const res = await fetch(`${BACKEND}/user/profile/${user.id}`);
-        const profile = await res.json();
-        currentTier = profile?.tier || "free";
-      } catch(e) { currentTier = "free"; }
-      updateNavLoggedIn();
-      updatePricingBtns();
-      startAutoRefresh();
+    async function setUser(user){
+      currentUser=user;
+      try{const res=await fetch(`${BACKEND}/user/profile/${user.id}`);const p=await res.json();currentTier=p?.tier||"free";}catch(e){currentTier="free";}
+      updateNavLoggedIn();updatePricingBtns();startAutoRefresh();
     }
 
-    function updateNavLoggedIn() {
-      const short = (currentUser?.email||"").split("@")[0];
-      document.getElementById("nav-user-info").innerHTML = `${short} <span class="tier-badge tier-${currentTier}">${cap(currentTier)}</span>`;
+    function updateNavLoggedIn(){
+      const short=(currentUser?.email||"").split("@")[0];
+      document.getElementById("nav-user-info").innerHTML=`${short} <span class="tier-badge tier-${currentTier}">${cap(currentTier)}</span>`;
       document.getElementById("nav-login-btn").style.display="none";
       document.getElementById("nav-signup-btn").style.display="none";
       document.getElementById("nav-logout-btn").style.display="block";
     }
 
-    function updateNavLoggedOut() {
+    function updateNavLoggedOut(){
       document.getElementById("nav-user-info").innerHTML="";
       document.getElementById("nav-login-btn").style.display="block";
       document.getElementById("nav-signup-btn").style.display="block";
@@ -692,248 +640,243 @@
       updatePricingBtns();
     }
 
-    function updatePricingBtns() {
-      ["bettor","sharp","edge"].forEach(tier => {
-        const btn = document.getElementById(tier+"-btn");
-        if (!btn) return;
-        if (!currentUser) { btn.textContent=`Get started`; btn.disabled=false; return; }
-        if (currentTier===tier) { btn.textContent="Current plan ✓"; btn.disabled=true; return; }
-        if (TIER_RANK[currentTier]>TIER_RANK[tier]) { btn.textContent="Switch to this plan"; btn.disabled=false; return; }
-        btn.textContent=`Upgrade to ${cap(tier)}`; btn.disabled=false;
+    function updatePricingBtns(){
+      ["bettor","sharp","edge"].forEach(tier=>{
+        const btn=document.getElementById(tier+"-btn");
+        if(!btn)return;
+        if(!currentUser){btn.textContent="Get started";btn.disabled=false;return;}
+        if(currentTier===tier){btn.textContent="Current plan ✓";btn.disabled=true;return;}
+        if(TIER_RANK[currentTier]>TIER_RANK[tier]){btn.textContent="Switch to this plan";btn.disabled=false;return;}
+        btn.textContent=`Upgrade to ${cap(tier)}`;btn.disabled=false;
       });
-      const fb = document.getElementById("free-btn");
-      if (fb) {
-        if (!currentUser) { fb.textContent="Get started free"; fb.disabled=false; }
-        else if (currentTier==="free") { fb.textContent="Current plan ✓"; fb.disabled=true; }
-        else { fb.textContent="Cancel subscription"; fb.disabled=false; fb.onclick=()=>alert("To cancel your subscription, please email support@chasetheodds.com and we'll take care of it right away!"); }
+      const fb=document.getElementById("free-btn");
+      if(fb){
+        if(!currentUser){fb.textContent="Get started free";fb.disabled=false;}
+        else if(currentTier==="free"){fb.textContent="Current plan ✓";fb.disabled=true;}
+        else{fb.textContent="Cancel subscription";fb.disabled=false;fb.onclick=()=>alert("To cancel, email support@chasetheodds.com and we'll take care of it right away!");}
       }
     }
 
-    function startAutoRefresh() {
+    function startAutoRefresh(){
       stopAutoRefresh();
-      const interval = REFRESH_INTERVALS[currentTier];
-      if (!interval || !ODDS_ENABLED) return;
-      autoRefreshTimer = setInterval(() => {
-        try { sessionStorage.removeItem(CACHE_KEY); } catch(e) {}
-        allGames = [];
-        loadAllOdds();
-      }, interval);
+      const interval=REFRESH_INTERVALS[currentTier];
+      if(!interval||!ODDS_ENABLED)return;
+      autoRefreshTimer=setInterval(()=>{try{sessionStorage.removeItem(CACHE_KEY);}catch(e){}allGames=[];loadAllOdds();},interval);
     }
-    function stopAutoRefresh() { if (autoRefreshTimer) { clearInterval(autoRefreshTimer); autoRefreshTimer=null; } }
+    function stopAutoRefresh(){if(autoRefreshTimer){clearInterval(autoRefreshTimer);autoRefreshTimer=null;}}
 
-    function openAuthModal(mode) {
-      authMode = mode;
+    function openAuthModal(mode){
+      authMode=mode;
       document.getElementById("auth-modal").style.display="flex";
       document.getElementById("auth-error").style.display="none";
       document.getElementById("auth-success").style.display="none";
       document.getElementById("auth-email").value="";
       document.getElementById("auth-password").value="";
-      if (mode==="signup") {
+      if(mode==="signup"){
         document.getElementById("auth-title").textContent="Create account";
         document.getElementById("auth-sub").textContent="Free forever. Upgrade anytime.";
         document.getElementById("auth-submit").textContent="Create account";
         document.getElementById("auth-switch").innerHTML=`Already have an account? <span onclick="switchAuthMode('login')">Log in</span>`;
-      } else {
+      }else{
         document.getElementById("auth-title").textContent="Welcome back";
         document.getElementById("auth-sub").textContent="Log in to your account.";
         document.getElementById("auth-submit").textContent="Log in";
         document.getElementById("auth-switch").innerHTML=`No account? <span onclick="switchAuthMode('signup')">Sign up free</span>`;
       }
     }
-    function switchAuthMode(mode) { openAuthModal(mode); }
-    function closeAuthModal() { document.getElementById("auth-modal").style.display="none"; }
+    function switchAuthMode(mode){openAuthModal(mode);}
+    function closeAuthModal(){document.getElementById("auth-modal").style.display="none";}
 
-    async function submitAuth() {
+    async function submitAuth(){
       const email=document.getElementById("auth-email").value.trim();
       const password=document.getElementById("auth-password").value;
       const errEl=document.getElementById("auth-error"),succEl=document.getElementById("auth-success");
-      errEl.style.display="none"; succEl.style.display="none";
-      if (!email||!password) { errEl.textContent="Please enter email and password."; errEl.style.display="block"; return; }
+      errEl.style.display="none";succEl.style.display="none";
+      if(!email||!password){errEl.textContent="Please enter email and password.";errEl.style.display="block";return;}
       const btn=document.getElementById("auth-submit");
-      btn.textContent="Loading..."; btn.disabled=true;
-      try {
-        if (authMode==="signup") {
-          const { error } = await sb.auth.signUp({ email, password });
-          if (error) throw error;
-          succEl.textContent="Account created! You can now log in."; succEl.style.display="block";
-        } else {
-          const { error } = await sb.auth.signInWithPassword({ email, password });
-          if (error) throw error;
+      btn.textContent="Loading...";btn.disabled=true;
+      try{
+        if(authMode==="signup"){
+          const{error}=await sb.auth.signUp({email,password});
+          if(error)throw error;
+          succEl.textContent="Account created! You can now log in.";succEl.style.display="block";
+        }else{
+          const{error}=await sb.auth.signInWithPassword({email,password});
+          if(error)throw error;
           closeAuthModal();
         }
-      } catch(e) { errEl.textContent=e.message||"Something went wrong."; errEl.style.display="block"; }
-      btn.textContent=authMode==="signup"?"Create account":"Log in"; btn.disabled=false;
+      }catch(e){errEl.textContent=e.message||"Something went wrong.";errEl.style.display="block";}
+      btn.textContent=authMode==="signup"?"Create account":"Log in";btn.disabled=false;
     }
-    async function signOut() { stopAutoRefresh(); await sb.auth.signOut(); }
+    async function signOut(){stopAutoRefresh();await sb.auth.signOut();}
 
-    function gateBox(title, sub, btnText, btnAction) {
+    function gateBox(title,sub,btnText,btnAction){
       return `<div class="gate-box"><div class="gate-box-icon">🔒</div><div class="gate-box-title">${title}</div><div class="gate-box-sub">${sub}</div><button class="gate-box-btn" onclick="${btnAction}">${btnText}</button></div>`;
     }
 
-    function checkArbAccess() {
-      const display = document.getElementById("arb-display");
-      if (!currentUser) { display.innerHTML=gateBox("Sign in to access the Arb Detector","Create a free account and upgrade to The Edge to unlock real-time arbitrage opportunities.","Sign up free","openAuthModal('signup')"); return false; }
-      if (!hasTier("edge")) { display.innerHTML=gateBox("Arb Detector — The Edge only","Upgrade to The Edge to unlock real-time arbitrage opportunities across all books with exact bet amounts and guaranteed profit calculations.","Upgrade to Edge — $15/mo","switchPage('pricing',document.querySelectorAll('.nav-tab')[5])"); return false; }
+    function checkArbAccess(){
+      const display=document.getElementById("arb-display");
+      if(!currentUser){display.innerHTML=gateBox("Sign in to access the Arb Detector","Create a free account and upgrade to The Edge to unlock real-time arbitrage opportunities.","Sign up free","openAuthModal('signup')");return false;}
+      if(!hasTier("edge")){display.innerHTML=gateBox("Arb Detector — The Edge only","Upgrade to The Edge to unlock real-time arbitrage opportunities with exact bet amounts and guaranteed profit calculations.","Upgrade to Edge — $15/mo","switchPage('pricing',document.querySelectorAll('.nav-tab')[5])");return false;}
       return true;
     }
 
-    function getMatchupGate() {
-      if (!currentUser) return gateBox("Sign in to view matchups & props","Create a free account and upgrade to The Bettor to unlock goalie matchups, pitcher stats, H2H history, and player props.","Sign up free","openAuthModal('signup')");
-      if (!hasTier("bettor")) return gateBox("Matchups & Props — The Bettor & above","Upgrade to The Bettor to unlock goalie matchups, pitcher stats, head-to-head history, player props, and alternate lines.","Upgrade to Bettor — $7/mo","switchPage('pricing',document.querySelectorAll('.nav-tab')[5])");
+    function getMatchupGate(){
+      if(!currentUser)return gateBox("Sign in to view matchups & props","Create a free account and upgrade to The Bettor to unlock goalie matchups, pitcher stats, H2H history, and player props.","Sign up free","openAuthModal('signup')");
+      if(!hasTier("bettor"))return gateBox("Matchups & Props — The Bettor & above","Upgrade to The Bettor to unlock goalie matchups, pitcher stats, head-to-head history, player props, and alternate lines.","Upgrade to Bettor — $7/mo","switchPage('pricing',document.querySelectorAll('.nav-tab')[5])");
       return null;
     }
 
-    function switchPage(page, btn) {
+    function switchPage(page,btn){
       document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
       document.querySelectorAll(".nav-tab").forEach(b=>b.classList.remove("active"));
       document.getElementById("page-"+page).classList.add("active");
-      if (btn) btn.classList.add("active");
-      if (page==="arb") { const ok=checkArbAccess(); if(ok){if(!arbOpportunities.length&&allGames.length)arbOpportunities=findArbs(allGames);renderArbPage();} }
-      if (page==="nuke") buildNukePage();
+      if(btn)btn.classList.add("active");
+      if(page==="arb"){const ok=checkArbAccess();if(ok){if(!arbOpportunities.length&&allGames.length)arbOpportunities=findArbs(allGames);renderArbPage();}}
+      if(page==="nuke")buildNukePage();
     }
 
-    async function validatePromo() {
+    async function validatePromo(){
       const code=document.getElementById("promo-input").value.trim(),el=document.getElementById("promo-result");
-      if (!code) return;
-      el.textContent="Checking..."; el.className="promo-result"; el.style.display="block";
-      try {
+      if(!code)return;
+      el.textContent="Checking...";el.className="promo-result";el.style.display="block";
+      try{
         const res=await fetch(`${BACKEND}/promo/validate`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,tier:"bettor"})});
         const data=await res.json();
-        if (data.valid) { appliedPromo=code; el.textContent=`✓ ${code} — ${data.description}`; el.className="promo-result valid"; }
-        else { appliedPromo=null; el.textContent=`✗ ${data.message}`; el.className="promo-result invalid"; }
-      } catch(e) { el.textContent="Could not validate."; el.className="promo-result invalid"; }
+        if(data.valid){appliedPromo=code;el.textContent=`✓ ${code} — ${data.description}`;el.className="promo-result valid";}
+        else{appliedPromo=null;el.textContent=`✗ ${data.message}`;el.className="promo-result invalid";}
+      }catch(e){el.textContent="Could not validate.";el.className="promo-result invalid";}
     }
 
-    async function startCheckout(tier) {
-      if (!currentUser) { openAuthModal("signup"); return; }
-      if (TIER_RANK[currentTier] > TIER_RANK[tier]) {
-        alert("To switch to a lower plan, please cancel your current subscription first by emailing support@chasetheodds.com. We'll take care of it right away!");
-        return;
-      }
+    async function startCheckout(tier){
+      if(!currentUser){openAuthModal("signup");return;}
+      if(TIER_RANK[currentTier]>TIER_RANK[tier]){alert("To switch to a lower plan, email support@chasetheodds.com and we'll take care of it!");return;}
       const btn=document.getElementById(tier+"-btn");
-      btn.textContent="Loading..."; btn.disabled=true;
-      try {
+      btn.textContent="Loading...";btn.disabled=true;
+      try{
         const res=await fetch(`${BACKEND}/checkout`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({priceId:PRICE_IDS[tier],userId:currentUser.id,email:currentUser.email,promoCode:appliedPromo||"",tier})});
         const data=await res.json();
-        if (data.url) window.location.href=data.url;
+        if(data.url)window.location.href=data.url;
         else throw new Error(data.error||"Checkout failed");
-      } catch(e) { alert("Error: "+e.message); btn.textContent=`Upgrade to ${cap(tier)}`; btn.disabled=false; }
+      }catch(e){alert("Error: "+e.message);btn.textContent=`Upgrade to ${cap(tier)}`;btn.disabled=false;}
     }
 
     let fbType="feedback";
     function setFbType(type,btn){fbType=type;document.querySelectorAll("#page-community .br-style-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");}
 
-    async function startTip(priceId) {
-      try {
+    async function startTip(priceId){
+      try{
         const res=await fetch(`${BACKEND}/tip`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({priceId,email:currentUser?.email||""})});
         const data=await res.json();
-        if (data.url) window.location.href=data.url;
+        if(data.url)window.location.href=data.url;
         else throw new Error(data.error);
-      } catch(e) { document.getElementById("tip-error").textContent="Error: "+e.message; document.getElementById("tip-error").style.display="block"; }
+      }catch(e){document.getElementById("tip-error").textContent="Error: "+e.message;document.getElementById("tip-error").style.display="block";}
     }
 
-    async function startCustomTip() {
+    async function startCustomTip(){
       const amt=document.getElementById("custom-tip-amt").value,errEl=document.getElementById("tip-error");
       errEl.style.display="none";
-      if (!amt||parseFloat(amt)<1) { errEl.textContent="Please enter at least $1."; errEl.style.display="block"; return; }
-      try {
+      if(!amt||parseFloat(amt)<1){errEl.textContent="Please enter at least $1.";errEl.style.display="block";return;}
+      try{
         const res=await fetch(`${BACKEND}/tip`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({customAmount:amt,email:currentUser?.email||""})});
         const data=await res.json();
-        if (data.url) window.location.href=data.url;
+        if(data.url)window.location.href=data.url;
         else throw new Error(data.error);
-      } catch(e) { document.getElementById("tip-error").textContent="Error: "+e.message; document.getElementById("tip-error").style.display="block"; }
+      }catch(e){document.getElementById("tip-error").textContent="Error: "+e.message;document.getElementById("tip-error").style.display="block";}
     }
 
-    async function submitFeedback() {
+    async function submitFeedback(){
       const message=document.getElementById("fb-message").value.trim(),email=document.getElementById("fb-email").value.trim();
       const resultEl=document.getElementById("fb-result"),btn=document.getElementById("fb-submit-btn");
-      if (!message) { resultEl.textContent="Please enter a message."; resultEl.style.background="#1a0000"; resultEl.style.color="#f87171"; resultEl.style.display="block"; return; }
-      btn.textContent="Sending..."; btn.disabled=true;
-      try {
+      if(!message){resultEl.textContent="Please enter a message.";resultEl.style.background="#1a0000";resultEl.style.color="#f87171";resultEl.style.display="block";return;}
+      btn.textContent="Sending...";btn.disabled=true;
+      try{
         const res=await fetch(`${BACKEND}/feedback`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({userId:currentUser?.id||null,email:email||currentUser?.email||null,type:fbType,message})});
         const data=await res.json();
-        if (data.success) { resultEl.textContent="Message sent! Thanks 🙏"; resultEl.style.background="#0d2b1a"; resultEl.style.color="#22c55e"; resultEl.style.border="1px solid #22c55e"; resultEl.style.display="block"; document.getElementById("fb-message").value=""; document.getElementById("fb-email").value=""; }
+        if(data.success){resultEl.textContent="Message sent! Thanks 🙏";resultEl.style.background="#0d2b1a";resultEl.style.color="#22c55e";resultEl.style.border="1px solid #22c55e";resultEl.style.display="block";document.getElementById("fb-message").value="";document.getElementById("fb-email").value="";}
         else throw new Error(data.error);
-      } catch(e) { resultEl.textContent="Could not send. Try again."; resultEl.style.background="#1a0000"; resultEl.style.color="#f87171"; resultEl.style.display="block"; }
-      btn.textContent="Send message"; btn.disabled=false;
+      }catch(e){resultEl.textContent="Could not send. Try again.";resultEl.style.background="#1a0000";resultEl.style.color="#f87171";resultEl.style.display="block";}
+      btn.textContent="Send message";btn.disabled=false;
     }
+
+    // ── Book filter ───────────────────────────────────────
+    const BOOK_ORDER=["draftkings","fanduel","betmgm","caesars","bet365","hardrockbet","espnbet","novig","betonlineag","mybookieag","bovada","pointsbetus","unibet_us","williamhill","fliff"];
+    const BOOK_NAMES={"draftkings":"DK","fanduel":"FD","betmgm":"MGM","bet365":"365","williamhill":"WmHill","caesars":"Czrs","hardrockbet":"HardRk","novig":"NoVig","betonlineag":"BOL","mybookieag":"MyBkie","bovada":"Bovada","pointsbetus":"PtsBet","unibet_us":"Unibet","espnbet":"ESPN","fliff":"Fliff"};
+    const BOOK_LINKS={"draftkings":"https://www.draftkings.com/sportsbook","fanduel":"https://www.fanduel.com/sportsbook","betmgm":"https://www.betmgm.com/sports","bet365":"https://www.bet365.com","williamhill":"https://www.williamhill.com/us","caesars":"https://www.caesars.com/sportsbook","hardrockbet":"https://www.hardrockbet.com","novig":"https://www.novig.com","betonlineag":"https://www.betonline.ag","mybookieag":"https://www.mybookie.ag","bovada":"https://www.bovada.lv","pointsbetus":"https://www.pointsbet.com","unibet_us":"https://www.unibet.com","espnbet":"https://www.espnbet.com","fliff":"https://www.getfliff.com"};
+    const ALL_BOOKS=Object.keys(BOOK_LINKS);
+    let activeBooks=new Set(BOOK_ORDER);
+    function initBookFilter(){document.getElementById("book-filter-btns").innerHTML=BOOK_ORDER.map(bk=>`<button id="bfbtn-${bk}" class="book-btn" onclick="toggleBook('${bk}',this)">${BOOK_NAMES[bk]||bk}</button>`).join("");}
+    function toggleBook(k,btn){if(activeBooks.has(k)){activeBooks.delete(k);btn.classList.add("off");}else{activeBooks.add(k);btn.classList.remove("off");}renderFiltered();}
+    function selectAllBooks(){activeBooks=new Set(BOOK_ORDER);document.querySelectorAll(".book-btn").forEach(b=>b.classList.remove("off"));renderFiltered();}
+    function selectNoBooks(){activeBooks.clear();document.querySelectorAll(".book-btn").forEach(b=>b.classList.add("off"));renderFiltered();}
+    function getBookLink(k){return BOOK_LINKS[k]||"#";}
+
+    // ── Bankroll ──────────────────────────────────────────
+    let unitPct=2,bettingStyle="moderate",oddsFmt="american";
+    function setUnitPct(pct,btn){unitPct=pct;document.querySelectorAll(".br-style-btn").forEach(b=>{if(["1%","2%","3%","5%"].includes(b.textContent))b.classList.remove("active");});btn.classList.add("active");updateAll();}
+    function setStyle(s,btn){bettingStyle=s;document.querySelectorAll(".br-style-btn").forEach(b=>{if(["Conservative","Moderate","Aggressive"].includes(b.textContent))b.classList.remove("active");});btn.classList.add("active");updateAll();}
+    function setOddsFmt(fmt,btn){oddsFmt=fmt;document.querySelectorAll(".br-type-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");document.getElementById("kelly-odds").placeholder=fmt==="american"?"+150":"2.50";}
+    function getBankroll(){return parseFloat(document.getElementById("bankroll").value)||0;}
+    function parseOdds(str){if(!str)return null;str=str.trim();if(oddsFmt==="decimal"||(!str.includes("+")&&!str.includes("-")&&parseFloat(str)>1)){const d=parseFloat(str);return isNaN(d)?null:d;}const n=parseFloat(str.replace(/[^0-9.\-]/g,s=>s==="-"?"-":""));if(isNaN(n))return null;return n>=0?(n/100)+1:(100/Math.abs(n))+1;}
+    function parseOddsAmerican(str){if(!str)return null;str=str.trim();const n=parseFloat(str.replace(/[^0-9.\-+]/g,""));if(isNaN(n))return null;return n>=0?(n/100)+1:(100/Math.abs(n))+1;}
+
+    function updateAll(){
+      const br=getBankroll();
+      if(!br){document.getElementById("bankroll-summary").style.display="none";document.getElementById("unit-breakdown").style.display="none";return;}
+      const unit=br*(unitPct/100),maxMult=bettingStyle==="conservative"?1:bettingStyle==="moderate"?2:3;
+      document.getElementById("unit-val").textContent=fmt$(unit);
+      document.getElementById("max-bet").textContent=fmt$(unit*maxMult);
+      document.getElementById("stop-loss").textContent=fmt$(unit*10);
+      document.getElementById("bankroll-summary").style.display="block";
+      const bd=document.getElementById("unit-breakdown");
+      bd.style.display="block";
+      bd.innerHTML=`<div style="font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">What common bet sizes look like for you</div>`
+        +[0.15,0.25,0.5,1,2,3].map(u=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1a1d26;font-size:13px"><span style="color:#666">${u}u bet</span><span style="color:${u<=1?"#22c55e":u<=2?"#f59e0b":"#f87171"};font-weight:700">${fmt$(unit*u)}</span></div>`).join("")
+        +`<div style="font-size:11px;color:#555;margin-top:10px;line-height:1.6"><span style="color:#22c55e">●</span> Green = safe &nbsp;<span style="color:#f59e0b">●</span> Yellow = moderate &nbsp;<span style="color:#f87171">●</span> Red = high risk<br>Most sharp bettors stay under 2 units per play.</div>`;
+      calcKelly();calcFlat();calcParlay();
+    }
+
+    function calcKelly(){const br=getBankroll(),os=document.getElementById("kelly-odds").value,ps=document.getElementById("kelly-prob").value;if(!os||!ps){document.getElementById("kelly-result").style.display="none";return;}const decimal=parseOdds(os),p=parseFloat(ps)/100;if(!decimal||isNaN(p)||p<=0||p>=1){document.getElementById("kelly-result").style.display="none";return;}const b=decimal-1,q=1-p,kelly=(b*p-q)/b,ev=(b*p-q)*100,fullAmt=Math.max(0,kelly*br),unit=br*(unitPct/100);document.getElementById("kelly-full").textContent=fmt$(fullAmt);document.getElementById("kelly-half").textContent=fmt$(fullAmt/2);document.getElementById("kelly-quarter").textContent=fmt$(fullAmt/4);document.getElementById("kelly-ev").textContent=(ev>=0?"+":"")+ev.toFixed(1)+"%";document.getElementById("kelly-ev").className="br-result-val"+(ev>=0?"":" bad");document.getElementById("kelly-profit").textContent=fmt$(fullAmt*b);const recMult=bettingStyle==="conservative"?0.25:bettingStyle==="moderate"?0.5:1,recAmt=fullAmt*recMult,recUnits=unit>0?(recAmt/unit).toFixed(2):"—";document.getElementById("kelly-bet-amt").textContent=fmt$(recAmt);document.getElementById("kelly-units").textContent=`${recUnits} units = ${fmt$(recAmt)} (${bettingStyle} style)`;document.getElementById("kelly-advice").textContent=kelly<=0?"Negative EV.":kelly<0.02?"Very small edge.":kelly<0.05?"Moderate edge.":kelly<0.1?"Strong edge.":"Very high % — consider Half Kelly.";document.getElementById("kelly-result").style.display="block";}
+    function calcFlat(){const amt=parseFloat(document.getElementById("flat-amt").value),os=document.getElementById("flat-odds").value,br=getBankroll();if(!amt||!os){document.getElementById("flat-result").style.display="none";return;}const d=parseOddsAmerican(os);if(!d){document.getElementById("flat-result").style.display="none";return;}document.getElementById("flat-profit").textContent=fmt$(amt*(d-1));document.getElementById("flat-payout").textContent=fmt$(amt*d);document.getElementById("flat-impl").textContent=fmtPct((1/d)*100);document.getElementById("flat-pct").textContent=fmtPct(br?(amt/br)*100:0);document.getElementById("flat-result").style.display="block";}
+    function addParlay(){const c=document.getElementById("parlay-legs"),n=c.children.length+1;const r=document.createElement("div");r.className="parlay-row";r.innerHTML=`<input class="br-input" type="text" placeholder="Leg ${n} odds" oninput="calcParlay()" style="flex:1;width:auto"><button class="parlay-remove" onclick="removeParlay(this)">×</button>`;c.appendChild(r);}
+    function removeParlay(btn){if(document.getElementById("parlay-legs").children.length>1){btn.closest(".parlay-row").remove();calcParlay();}}
+    function calcParlay(){const inputs=document.querySelectorAll("#parlay-legs input"),amt=parseFloat(document.getElementById("parlay-amt").value);let combined=1,prob=1,valid=true;inputs.forEach(inp=>{const d=parseOddsAmerican(inp.value);if(!d){valid=false;return;}combined*=d;prob*=(1/d);});if(!valid||combined===1||!amt){document.getElementById("parlay-result").style.display="none";return;}document.getElementById("parlay-odds").textContent=decimalToAmerican(combined);document.getElementById("parlay-profit").textContent=fmt$(amt*(combined-1));document.getElementById("parlay-payout").textContent=fmt$(amt*combined);document.getElementById("parlay-prob").textContent=fmtPct(prob*100);document.getElementById("parlay-result").style.display="block";}
+    function calcConverter(){const input=document.getElementById("conv-input").value.trim();if(!input){document.getElementById("conv-result").style.display="none";return;}let d=null;if(input.endsWith("%")){const p=parseFloat(input)/100;if(p>0&&p<1)d=1/p;}else if(input.startsWith("+")||input.startsWith("-")){const n=parseFloat(input);if(!isNaN(n))d=n>=0?(n/100)+1:(100/Math.abs(n))+1;}else{const n=parseFloat(input);if(!isNaN(n)&&n>1)d=n;}if(!d){document.getElementById("conv-result").style.display="none";return;}document.getElementById("conv-american").textContent=decimalToAmerican(d);document.getElementById("conv-decimal").textContent=d.toFixed(3);document.getElementById("conv-implied").textContent=fmtPct((1/d)*100);document.getElementById("conv-result").style.display="block";}
 
     // ── Nuke ─────────────────────────────────────────────
-   function nukeIcon(size) {function nukeIcon(size) {
-  return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="50" cy="50" r="50" fill="#f59e0b"/>
-    <path d="M50 50 L15 82 A42 42 0 0 1 15 18 Z" fill="#1a1a1a"/>
-    <path d="M50 50 L85 18 A42 42 0 0 1 85 82 Z" fill="#1a1a1a"/>
-    <path d="M50 50 L15 18 A42 42 0 0 1 50 8 Z" fill="#f59e0b"/>
-    <path d="M50 50 L50 8 A42 42 0 0 1 85 18 Z" fill="#f59e0b"/>
-    <path d="M50 50 L85 82 A42 42 0 0 1 15 82 Z" fill="#f59e0b"/>
-    <circle cx="50" cy="50" r="13" fill="#f59e0b"/>
-    <circle cx="50" cy="50" r="8" fill="#1a1a1a"/>
-  </svg>`;
-}
-    }
-        <circle cx="50" cy="50" r="50" fill="#f59e0b"/>
-        <path d="M50 50 L15 82 A42 42 0 0 1 15 18 Z" fill="#111"/>
-        <path d="M50 50 L85 18 A42 42 0 0 1 85 82 Z" fill="#111"/>
-        <path d="M50 50 L50 8 A42 42 0 0 1 85 18 Z" fill="#f59e0b"/>
-        <path d="M50 50 L85 82 A42 42 0 0 1 15 82 Z" fill="#f59e0b"/>
-        <path d="M50 50 L15 18 A42 42 0 0 1 50 8 Z" fill="#f59e0b"/>
-        <circle cx="50" cy="50" r="12" fill="#f59e0b"/>
-        <circle cx="50" cy="50" r="7" fill="#111"/>
-      </svg>`;
-    }
-
-    function findAllSpikes(games) {
-      const spikes = [];
-      games.forEach(game => {
-        const ao = game.bookmakers.flatMap(b => b.markets.filter(m=>m.key==="h2h").flatMap(m => m.outcomes.map(o=>({book:b.key,bookName:b.title,team:o.name,price:o.price}))));
-        const teams = [...new Set(ao.map(m=>m.team))];
-        teams.forEach(team => {
-          const outcomes = ao.filter(o=>o.team===team&&activeBooks.has(o.book));
-          if (outcomes.length < 2) return;
-          const prices = outcomes.map(o=>o.price);
-          const best = Math.max(...prices);
-          const others = prices.filter(p=>p!==best);
-          const avg = others.reduce((a,b)=>a+b,0)/others.length;
-          const bestBook = outcomes.find(o=>o.price===best);
-          const bestAm = best>=2?(best-1)*100:100/(1-best);
-          const ratio = best/avg;
-          if (bestAm>=200&&ratio>=2.5) {
-            spikes.push({
-              game: game.away_team+" @ "+game.home_team,
-              sport: game.sport,
-              commence_time: game.commence_time,
-              team, book: bestBook.bookName, bookKey: bestBook.book,
-              spikeOdds: best, avgOdds: avg, ratio,
-              diff: Math.round(bestAm-(avg>=2?(avg-1)*100:100/(1-avg)))
-            });
+    function findAllSpikes(games){
+      const spikes=[];
+      games.forEach(game=>{
+        const ao=game.bookmakers.flatMap(b=>b.markets.filter(m=>m.key==="h2h").flatMap(m=>m.outcomes.map(o=>({book:b.key,bookName:b.title,team:o.name,price:o.price}))));
+        const teams=[...new Set(ao.map(m=>m.team))];
+        teams.forEach(team=>{
+          const outcomes=ao.filter(o=>o.team===team&&activeBooks.has(o.book));
+          if(outcomes.length<2)return;
+          const prices=outcomes.map(o=>o.price),best=Math.max(...prices),others=prices.filter(p=>p!==best),avg=others.reduce((a,b)=>a+b,0)/others.length;
+          const bestBook=outcomes.find(o=>o.price===best),bestAm=best>=2?(best-1)*100:100/(1-best),ratio=best/avg;
+          if(bestAm>=200&&ratio>=2.5){
+            spikes.push({game:game.away_team+" @ "+game.home_team,sport:game.sport,commence_time:game.commence_time,team,book:bestBook.bookName,bookKey:bestBook.book,spikeOdds:best,avgOdds:avg,ratio,diff:Math.round(bestAm-(avg>=2?(avg-1)*100:100/(1-avg)))});
           }
         });
       });
       return spikes.sort((a,b)=>b.ratio-a.ratio);
     }
 
-    function buildNukePage() {
-      const display = document.getElementById("nuke-display");
-      if (!display) return;
-      if (!currentUser) { display.innerHTML=gateBox("Sign in to access Nuke","Create a free account and upgrade to The Sharp to see all odds spikes in one place.","Sign up free","openAuthModal('signup')"); return; }
-      if (!hasTier("sharp")) {
-        const preview = hasTier("bettor") ? `<div style="background:#1a1200;border:1px solid #f59e0b;border-radius:8px;padding:12px 14px;margin-bottom:12px;font-size:12px;color:#f59e0b">As a Bettor you can see spikes on individual games — upgrade to Sharp to get them all in one place.</div>` : "";
-        display.innerHTML = preview + gateBox("Nuke — The Sharp & above","Upgrade to The Sharp to see every odds spike across all sports in one live feed, sorted by biggest edge first.","Upgrade to Sharp — $10/mo","switchPage('pricing',document.querySelectorAll('.nav-tab')[5])");
+    function buildNukePage(){
+      const display=document.getElementById("nuke-display");
+      if(!display)return;
+      if(!currentUser){display.innerHTML=gateBox("Sign in to access ☢️ Nuke","Create a free account and upgrade to The Sharp to see all odds spikes in one place.","Sign up free","openAuthModal('signup')");return;}
+      if(!hasTier("sharp")){
+        const preview=hasTier("bettor")?`<div style="background:#1a1200;border:1px solid #f59e0b;border-radius:8px;padding:12px 14px;margin-bottom:12px;font-size:12px;color:#f59e0b">As a Bettor you can see spikes on individual games — upgrade to Sharp to get them all in one place.</div>`:"";
+        display.innerHTML=preview+gateBox("☢️ Nuke — The Sharp & above","Upgrade to The Sharp to see every odds spike across all sports in one live feed, sorted by biggest edge first.","Upgrade to Sharp — $10/mo","switchPage('pricing',document.querySelectorAll('.nav-tab')[5])");
         return;
       }
-      if (!allGames.length) {
-        display.innerHTML=`<div style="text-align:center;padding:40px 0">${nukeIcon(40)}<div style="color:#555;font-size:13px;margin-top:16px">Odds not loaded yet — enable odds to see spikes.</div></div>`;
-        return;
-      }
-      const spikes = findAllSpikes(allGames);
-      if (!spikes.length) {
-        display.innerHTML=`<div style="text-align:center;padding:40px 0"><div style="font-size:32px;margin-bottom:12px">😴</div><div style="font-size:14px;color:#aaa;margin-bottom:6px">No nukes right now</div><div style="font-size:12px;color:#555">Books are in close agreement. Check back closer to game time.</div></div>`;
-        return;
-      }
-      display.innerHTML = spikes.map(spike => {
-        const gt = new Date(spike.commence_time).toLocaleString("en-US",{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
-        const icons = spike.ratio>=5?`${nukeIcon(18)}${nukeIcon(18)}${nukeIcon(18)}`:spike.ratio>=3.5?`${nukeIcon(18)}${nukeIcon(18)}`:`${nukeIcon(18)}`;
+      if(!allGames.length){display.innerHTML=`<div style="text-align:center;padding:40px 0;color:#555;font-size:13px"><div style="font-size:40px;margin-bottom:12px">☢️</div>Odds not loaded yet — enable odds to see spikes.</div>`;return;}
+      const spikes=findAllSpikes(allGames);
+      if(!spikes.length){display.innerHTML=`<div style="text-align:center;padding:40px 0"><div style="font-size:32px;margin-bottom:12px">😴</div><div style="font-size:14px;color:#aaa;margin-bottom:6px">No nukes right now</div><div style="font-size:12px;color:#555">Check back closer to game time.</div></div>`;return;}
+      const nukeIcons=ratio=>ratio>=5?"☢️☢️☢️":ratio>=3.5?"☢️☢️":"☢️";
+      display.innerHTML=spikes.map(spike=>{
+        const gt=new Date(spike.commence_time).toLocaleString("en-US",{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
         return `<div style="background:#1a1d26;border-radius:10px;padding:14px;margin-bottom:10px;border:1px solid #f59e0b">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
             <div>
@@ -941,7 +884,7 @@
               <div style="font-size:14px;font-weight:700;color:white;margin-bottom:2px">${spike.game}</div>
               <div style="font-size:13px;color:#f59e0b;font-weight:600">${spike.team}</div>
             </div>
-            <div style="display:flex;gap:2px;align-items:center">${icons}</div>
+            <div style="font-size:20px">${nukeIcons(spike.ratio)}</div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
             <div style="background:#12141c;border-radius:8px;padding:10px;text-align:center;border:1px solid #f59e0b">
@@ -960,62 +903,10 @@
               <div style="font-size:10px;color:#555;margin-top:2px">vs avg</div>
             </div>
           </div>
-          <a href="${getBookLink(spike.bookKey)}" target="_blank" rel="noopener" style="display:block;width:100%;padding:10px;background:#1a1200;border:1px solid #f59e0b;border-radius:8px;color:#f59e0b;font-size:13px;font-weight:700;text-align:center;text-decoration:none">
-            Bet on ${spike.book} →
-          </a>
+          <a href="${getBookLink(spike.bookKey)}" target="_blank" rel="noopener" style="display:block;width:100%;padding:10px;background:#1a1200;border:1px solid #f59e0b;border-radius:8px;color:#f59e0b;font-size:13px;font-weight:700;text-align:center;text-decoration:none">Bet on ${spike.book} →</a>
         </div>`;
       }).join("");
     }
-
-    // ── Book filter ───────────────────────────────────────
-    const BOOK_ORDER=["draftkings","fanduel","betmgm","caesars","bet365","hardrockbet","espnbet","novig","betonlineag","mybookieag","bovada","pointsbetus","unibet_us","williamhill","fliff"];
-    let activeBooks=new Set(BOOK_ORDER);
-    function initBookFilter(){document.getElementById("book-filter-btns").innerHTML=BOOK_ORDER.map(bk=>`<button id="bfbtn-${bk}" class="book-btn" onclick="toggleBook('${bk}',this)">${BOOK_NAMES[bk]||bk}</button>`).join("");}
-    function toggleBook(k,btn){if(activeBooks.has(k)){activeBooks.delete(k);btn.classList.add("off");}else{activeBooks.add(k);btn.classList.remove("off");}renderFiltered();}
-    function selectAllBooks(){activeBooks=new Set(BOOK_ORDER);document.querySelectorAll(".book-btn").forEach(b=>b.classList.remove("off"));renderFiltered();}
-    function selectNoBooks(){activeBooks.clear();document.querySelectorAll(".book-btn").forEach(b=>b.classList.add("off"));renderFiltered();}
-
-    // ── Bankroll ──────────────────────────────────────────
-    let unitPct=2,bettingStyle="moderate",oddsFmt="american";
-    function setUnitPct(pct,btn){unitPct=pct;document.querySelectorAll(".br-style-btn").forEach(b=>{if(["1%","2%","3%","5%"].includes(b.textContent))b.classList.remove("active");});btn.classList.add("active");updateAll();}
-    function setStyle(s,btn){bettingStyle=s;document.querySelectorAll(".br-style-btn").forEach(b=>{if(["Conservative","Moderate","Aggressive"].includes(b.textContent))b.classList.remove("active");});btn.classList.add("active");updateAll();}
-    function setOddsFmt(fmt,btn){oddsFmt=fmt;document.querySelectorAll(".br-type-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");document.getElementById("kelly-odds").placeholder=fmt==="american"?"+150":"2.50";}
-    function getBankroll(){return parseFloat(document.getElementById("bankroll").value)||0;}
-    function parseOdds(str){if(!str)return null;str=str.trim();if(oddsFmt==="decimal"||(!str.includes("+")&&!str.includes("-")&&parseFloat(str)>1)){const d=parseFloat(str);return isNaN(d)?null:d;}const n=parseFloat(str.replace(/[^0-9.\-]/g,s=>s==="-"?"-":""));if(isNaN(n))return null;return n>=0?(n/100)+1:(100/Math.abs(n))+1;}
-    function parseOddsAmerican(str){if(!str)return null;str=str.trim();const n=parseFloat(str.replace(/[^0-9.\-+]/g,""));if(isNaN(n))return null;return n>=0?(n/100)+1:(100/Math.abs(n))+1;}
-    function decimalToAmerican(d){return d>=2?"+"+Math.round((d-1)*100):Math.round(-100/(d-1)).toString();}
-
-    function updateAll(){
-      const br=getBankroll();
-      if(!br){document.getElementById("bankroll-summary").style.display="none";document.getElementById("unit-breakdown").style.display="none";return;}
-      const unit=br*(unitPct/100),maxMult=bettingStyle==="conservative"?1:bettingStyle==="moderate"?2:3;
-      document.getElementById("unit-val").textContent=fmt$(unit);
-      document.getElementById("max-bet").textContent=fmt$(unit*maxMult);
-      document.getElementById("stop-loss").textContent=fmt$(unit*10);
-      document.getElementById("bankroll-summary").style.display="block";
-      const breakdownEl=document.getElementById("unit-breakdown");
-      breakdownEl.style.display="block";
-      const examples=[0.15,0.25,0.5,1,2,3];
-      breakdownEl.innerHTML=`<div style="font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">What common bet sizes look like for you</div>`
-        +examples.map(u=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1a1d26;font-size:13px">
-          <span style="color:#666">${u}u bet</span>
-          <span style="color:${u<=1?"#22c55e":u<=2?"#f59e0b":"#f87171"};font-weight:700">${fmt$(unit*u)}</span>
-        </div>`).join("")
-        +`<div style="font-size:11px;color:#555;margin-top:10px;line-height:1.6">
-          <span style="color:#22c55e">●</span> Green = safe &nbsp;
-          <span style="color:#f59e0b">●</span> Yellow = moderate &nbsp;
-          <span style="color:#f87171">●</span> Red = high risk<br>
-          Most sharp bettors stay under 2 units per play.
-        </div>`;
-      calcKelly();calcFlat();calcParlay();
-    }
-
-    function calcKelly(){const br=getBankroll(),os=document.getElementById("kelly-odds").value,ps=document.getElementById("kelly-prob").value;if(!os||!ps){document.getElementById("kelly-result").style.display="none";return;}const decimal=parseOdds(os),p=parseFloat(ps)/100;if(!decimal||isNaN(p)||p<=0||p>=1){document.getElementById("kelly-result").style.display="none";return;}const b=decimal-1,q=1-p,kelly=(b*p-q)/b,ev=(b*p-q)*100,fullAmt=Math.max(0,kelly*br),unit=br*(unitPct/100);document.getElementById("kelly-full").textContent=fmt$(fullAmt);document.getElementById("kelly-half").textContent=fmt$(fullAmt/2);document.getElementById("kelly-quarter").textContent=fmt$(fullAmt/4);document.getElementById("kelly-ev").textContent=(ev>=0?"+":"")+ev.toFixed(1)+"%";document.getElementById("kelly-ev").className="br-result-val"+(ev>=0?"":" bad");document.getElementById("kelly-profit").textContent=fmt$(fullAmt*b);const recMult=bettingStyle==="conservative"?0.25:bettingStyle==="moderate"?0.5:1,recAmt=fullAmt*recMult,recUnits=unit>0?(recAmt/unit).toFixed(2):"—";document.getElementById("kelly-bet-amt").textContent=fmt$(recAmt);document.getElementById("kelly-units").textContent=`${recUnits} units = ${fmt$(recAmt)} (${bettingStyle} style)`;document.getElementById("kelly-advice").textContent=kelly<=0?"Negative EV.":kelly<0.02?"Very small edge.":kelly<0.05?"Moderate edge.":kelly<0.1?"Strong edge.":"Very high % — consider Half Kelly.";document.getElementById("kelly-result").style.display="block";}
-    function calcFlat(){const amt=parseFloat(document.getElementById("flat-amt").value),os=document.getElementById("flat-odds").value,br=getBankroll();if(!amt||!os){document.getElementById("flat-result").style.display="none";return;}const d=parseOddsAmerican(os);if(!d){document.getElementById("flat-result").style.display="none";return;}document.getElementById("flat-profit").textContent=fmt$(amt*(d-1));document.getElementById("flat-payout").textContent=fmt$(amt*d);document.getElementById("flat-impl").textContent=fmtPct((1/d)*100);document.getElementById("flat-pct").textContent=fmtPct(br?(amt/br)*100:0);document.getElementById("flat-result").style.display="block";}
-    function addParlay(){const c=document.getElementById("parlay-legs"),n=c.children.length+1;const r=document.createElement("div");r.className="parlay-row";r.innerHTML=`<input class="br-input" type="text" placeholder="Leg ${n} odds" oninput="calcParlay()" style="flex:1;width:auto"><button class="parlay-remove" onclick="removeParlay(this)">×</button>`;c.appendChild(r);}
-    function removeParlay(btn){if(document.getElementById("parlay-legs").children.length>1){btn.closest(".parlay-row").remove();calcParlay();}}
-    function calcParlay(){const inputs=document.querySelectorAll("#parlay-legs input"),amt=parseFloat(document.getElementById("parlay-amt").value);let combined=1,prob=1,valid=true;inputs.forEach(inp=>{const d=parseOddsAmerican(inp.value);if(!d){valid=false;return;}combined*=d;prob*=(1/d);});if(!valid||combined===1||!amt){document.getElementById("parlay-result").style.display="none";return;}document.getElementById("parlay-odds").textContent=decimalToAmerican(combined);document.getElementById("parlay-profit").textContent=fmt$(amt*(combined-1));document.getElementById("parlay-payout").textContent=fmt$(amt*combined);document.getElementById("parlay-prob").textContent=fmtPct(prob*100);document.getElementById("parlay-result").style.display="block";}
-    function calcConverter(){const input=document.getElementById("conv-input").value.trim();if(!input){document.getElementById("conv-result").style.display="none";return;}let d=null;if(input.endsWith("%")){const p=parseFloat(input)/100;if(p>0&&p<1)d=1/p;}else if(input.startsWith("+")||input.startsWith("-")){const n=parseFloat(input);if(!isNaN(n))d=n>=0?(n/100)+1:(100/Math.abs(n))+1;}else{const n=parseFloat(input);if(!isNaN(n)&&n>1)d=n;}if(!d){document.getElementById("conv-result").style.display="none";return;}document.getElementById("conv-american").textContent=decimalToAmerican(d);document.getElementById("conv-decimal").textContent=d.toFixed(3);document.getElementById("conv-implied").textContent=fmtPct((1/d)*100);document.getElementById("conv-result").style.display="block";}
 
     // ── Arb ───────────────────────────────────────────────
     let arbOpportunities=[];
@@ -1027,9 +918,18 @@
     async function scanArbs(){if(!checkArbAccess())return;document.getElementById("arb-display").innerHTML=`<div class="arb-scanning"><span class="live-dot"></span> Scanning...</div>`;arbOpportunities=findArbs(allGames);renderArbPage();}
 
     // ── Stats ─────────────────────────────────────────────
-    let statsSport="nhl",statsSearchTimeout=null;
+    const SPORTS=["baseball_mlb","icehockey_nhl","basketball_nba","americanfootball_nfl"];
+    const SPORT_LABELS={"baseball_mlb":"MLB","icehockey_nhl":"NHL","basketball_nba":"NBA","americanfootball_nfl":"NFL"};
+    const NHL_ABBREVS={"Anaheim Ducks":"ANA","Boston Bruins":"BOS","Buffalo Sabres":"BUF","Calgary Flames":"CGY","Carolina Hurricanes":"CAR","Chicago Blackhawks":"CHI","Colorado Avalanche":"COL","Columbus Blue Jackets":"CBJ","Dallas Stars":"DAL","Detroit Red Wings":"DET","Edmonton Oilers":"EDM","Florida Panthers":"FLA","Los Angeles Kings":"LAK","Minnesota Wild":"MIN","Montreal Canadiens":"MTL","Nashville Predators":"NSH","New Jersey Devils":"NJD","New York Islanders":"NYI","New York Rangers":"NYR","Ottawa Senators":"OTT","Philadelphia Flyers":"PHI","Pittsburgh Penguins":"PIT","San Jose Sharks":"SJS","Seattle Kraken":"SEA","St. Louis Blues":"STL","Tampa Bay Lightning":"TBL","Toronto Maple Leafs":"TOR","Utah Hockey Club":"UTA","Vancouver Canucks":"VAN","Vegas Golden Knights":"VGK","Washington Capitals":"WSH","Winnipeg Jets":"WPG"};
+    const NHL_TEAM_IDS={"ANA":24,"BOS":6,"BUF":7,"CGY":20,"CAR":12,"CHI":16,"COL":21,"CBJ":29,"DAL":25,"DET":17,"EDM":22,"FLA":13,"LAK":26,"MIN":30,"MTL":8,"NSH":18,"NJD":1,"NYI":2,"NYR":3,"OTT":9,"PHI":4,"PIT":5,"SJS":28,"SEA":55,"STL":19,"TBL":14,"TOR":10,"UTA":59,"VAN":23,"VGK":54,"WSH":15,"WPG":52};
+    const MLB_TEAM_IDS={"Arizona Diamondbacks":109,"Atlanta Braves":144,"Baltimore Orioles":110,"Boston Red Sox":111,"Chicago Cubs":112,"Chicago White Sox":145,"Cincinnati Reds":113,"Cleveland Guardians":114,"Colorado Rockies":115,"Detroit Tigers":116,"Houston Astros":117,"Kansas City Royals":118,"Los Angeles Angels":108,"Los Angeles Dodgers":119,"Miami Marlins":146,"Milwaukee Brewers":158,"Minnesota Twins":142,"New York Mets":121,"New York Yankees":147,"Oakland Athletics":133,"Philadelphia Phillies":143,"Pittsburgh Pirates":134,"San Diego Padres":135,"San Francisco Giants":137,"Seattle Mariners":136,"St. Louis Cardinals":138,"Tampa Bay Rays":139,"Texas Rangers":140,"Toronto Blue Jays":141,"Washington Nationals":120};
+    const NHL_CATEGORIES={"Goals":["player_goal_scorer_first","player_goal_scorer_last","player_goal_scorer_anytime","player_goals","player_goals_alternate"],"Assists":["player_assists","player_assists_alternate"],"Points":["player_points","player_points_alternate","player_power_play_points","player_power_play_points_alternate"],"Shots & Defense":["player_shots_on_goal","player_shots_on_goal_alternate","player_blocked_shots","player_blocked_shots_alternate"]};
+    const MLB_CATEGORIES={"Hitting":["batter_home_runs","batter_home_runs_alternate","batter_hits","batter_hits_alternate","batter_total_bases","batter_total_bases_alternate","batter_rbis","batter_rbis_alternate","batter_runs_scored","batter_stolen_bases","batter_walks","batter_strikeouts"],"Pitching":["pitcher_strikeouts","pitcher_strikeouts_alternate","pitcher_hits_allowed","pitcher_hits_allowed_alternate","pitcher_walks","pitcher_walks_alternate","pitcher_earned_runs"]};
+    const PROP_LINE_LABELS={"player_goal_scorer_first":"First goal scorer","player_goal_scorer_last":"Last goal scorer","player_goal_scorer_anytime":"Anytime goal scorer","player_goals":"Goals o/u","player_goals_alternate":"Goals (alt)","player_assists":"Assists o/u","player_assists_alternate":"Assists (alt)","player_points":"Points o/u","player_points_alternate":"Points (alt)","player_power_play_points":"PP points","player_power_play_points_alternate":"PP points (alt)","player_shots_on_goal":"Shots o/u","player_shots_on_goal_alternate":"Shots (alt)","player_blocked_shots":"Blocked shots o/u","player_blocked_shots_alternate":"Blocked shots (alt)","batter_home_runs":"Home runs o/u","batter_home_runs_alternate":"Home runs (alt)","batter_hits":"Hits o/u","batter_hits_alternate":"Hits (alt)","batter_total_bases":"Total bases o/u","batter_total_bases_alternate":"Total bases (alt)","batter_rbis":"RBIs o/u","batter_rbis_alternate":"RBIs (alt)","batter_runs_scored":"Runs scored","batter_stolen_bases":"Stolen bases","batter_walks":"Walks","batter_strikeouts":"Batter K's","pitcher_strikeouts":"Pitcher K's o/u","pitcher_strikeouts_alternate":"Pitcher K's (alt)","pitcher_hits_allowed":"Hits allowed o/u","pitcher_hits_allowed_alternate":"Hits allowed (alt)","pitcher_walks":"Walks allowed o/u","pitcher_walks_alternate":"Walks allowed (alt)","pitcher_earned_runs":"Earned runs"};
     const NHL_TEAMS=[{abbrev:"ANA",name:"Anaheim Ducks"},{abbrev:"BOS",name:"Boston Bruins"},{abbrev:"BUF",name:"Buffalo Sabres"},{abbrev:"CGY",name:"Calgary Flames"},{abbrev:"CAR",name:"Carolina Hurricanes"},{abbrev:"CHI",name:"Chicago Blackhawks"},{abbrev:"COL",name:"Colorado Avalanche"},{abbrev:"CBJ",name:"Columbus Blue Jackets"},{abbrev:"DAL",name:"Dallas Stars"},{abbrev:"DET",name:"Detroit Red Wings"},{abbrev:"EDM",name:"Edmonton Oilers"},{abbrev:"FLA",name:"Florida Panthers"},{abbrev:"LAK",name:"Los Angeles Kings"},{abbrev:"MIN",name:"Minnesota Wild"},{abbrev:"MTL",name:"Montreal Canadiens"},{abbrev:"NSH",name:"Nashville Predators"},{abbrev:"NJD",name:"New Jersey Devils"},{abbrev:"NYI",name:"New York Islanders"},{abbrev:"NYR",name:"New York Rangers"},{abbrev:"OTT",name:"Ottawa Senators"},{abbrev:"PHI",name:"Philadelphia Flyers"},{abbrev:"PIT",name:"Pittsburgh Penguins"},{abbrev:"SJS",name:"San Jose Sharks"},{abbrev:"SEA",name:"Seattle Kraken"},{abbrev:"STL",name:"St. Louis Blues"},{abbrev:"TBL",name:"Tampa Bay Lightning"},{abbrev:"TOR",name:"Toronto Maple Leafs"},{abbrev:"UTA",name:"Utah Hockey Club"},{abbrev:"VAN",name:"Vancouver Canucks"},{abbrev:"VGK",name:"Vegas Golden Knights"},{abbrev:"WSH",name:"Washington Capitals"},{abbrev:"WPG",name:"Winnipeg Jets"}];
     const MLB_TEAMS=[{abbrev:"ARI",name:"Arizona Diamondbacks",id:109},{abbrev:"ATL",name:"Atlanta Braves",id:144},{abbrev:"BAL",name:"Baltimore Orioles",id:110},{abbrev:"BOS",name:"Boston Red Sox",id:111},{abbrev:"CHC",name:"Chicago Cubs",id:112},{abbrev:"CWS",name:"Chicago White Sox",id:145},{abbrev:"CIN",name:"Cincinnati Reds",id:113},{abbrev:"CLE",name:"Cleveland Guardians",id:114},{abbrev:"COL",name:"Colorado Rockies",id:115},{abbrev:"DET",name:"Detroit Tigers",id:116},{abbrev:"HOU",name:"Houston Astros",id:117},{abbrev:"KC",name:"Kansas City Royals",id:118},{abbrev:"LAA",name:"Los Angeles Angels",id:108},{abbrev:"LAD",name:"Los Angeles Dodgers",id:119},{abbrev:"MIA",name:"Miami Marlins",id:146},{abbrev:"MIL",name:"Milwaukee Brewers",id:158},{abbrev:"MIN",name:"Minnesota Twins",id:142},{abbrev:"NYM",name:"New York Mets",id:121},{abbrev:"NYY",name:"New York Yankees",id:147},{abbrev:"OAK",name:"Oakland Athletics",id:133},{abbrev:"PHI",name:"Philadelphia Phillies",id:143},{abbrev:"PIT",name:"Pittsburgh Pirates",id:134},{abbrev:"SD",name:"San Diego Padres",id:135},{abbrev:"SF",name:"San Francisco Giants",id:137},{abbrev:"SEA",name:"Seattle Mariners",id:136},{abbrev:"STL",name:"St. Louis Cardinals",id:138},{abbrev:"TB",name:"Tampa Bay Rays",id:139},{abbrev:"TEX",name:"Texas Rangers",id:140},{abbrev:"TOR",name:"Toronto Blue Jays",id:141},{abbrev:"WSH",name:"Washington Nationals",id:120}];
+
+    let statsSport="nhl",statsSearchTimeout=null;
     function setStatsSport(sport,btn){statsSport=sport;document.querySelectorAll("#page-stats .br-style-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");document.getElementById("stats-search").value="";document.getElementById("stats-suggestions").style.display="none";showTeamGrid();}
     function showTeamGrid(){const teams=statsSport==="nhl"?NHL_TEAMS:MLB_TEAMS;document.getElementById("stats-main").innerHTML=`<div style="font-size:11px;color:#555;margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;font-weight:700">Select a team</div><div class="team-grid">${teams.map(t=>`<div class="team-card" onclick="showRoster('${t.abbrev}','${t.name.replace(/'/g,"\\'")}',${t.id||0})"><div class="team-card-abbrev">${t.abbrev}</div><div class="team-card-name">${t.name}</div></div>`).join("")}</div>`;}
     async function showRoster(abbrev,teamName,teamId){const main=document.getElementById("stats-main");main.innerHTML=`<button class="stats-back" onclick="showTeamGrid()">← All teams</button><div style="font-size:16px;font-weight:900;color:white;margin-bottom:12px">${teamName}</div><div style="color:#555;font-size:13px;padding:20px 0;text-align:center">Loading roster...</div>`;try{let players=[];if(statsSport==="nhl"){const res=await fetch(`${BACKEND}/nhl/roster/${abbrev}`);const data=await res.json();const all=[...(data.forwards||[]),...(data.defensemen||[]),...(data.goalies||[])];players=all.map(p=>({id:p.id,name:`${p.firstName?.default||p.firstName||""} ${p.lastName?.default||p.lastName||""}`.trim(),pos:p.positionCode||"—",num:p.sweaterNumber||""})).sort((a,b)=>a.name.localeCompare(b.name));}else{const res=await fetch(`${BACKEND}/mlb/roster/${teamId}`);const data=await res.json();players=(data.roster||[]).map(p=>({id:p.person.id,name:p.person.fullName,pos:p.position?.abbreviation||"—",num:p.jerseyNumber||""})).sort((a,b)=>a.name.localeCompare(b.name));}if(!players.length){main.innerHTML=`<button class="stats-back" onclick="showTeamGrid()">← All teams</button><div style="color:#555;font-size:13px;padding:20px 0">No roster data.</div>`;return;}main.innerHTML=`<button class="stats-back" onclick="showTeamGrid()">← All teams</button><div style="font-size:16px;font-weight:900;color:white;margin-bottom:12px">${teamName}</div>${players.map(p=>`<div class="roster-player" onclick="loadPlayerStats(${p.id},'${p.name.replace(/'/g,"\\'")}','${abbrev}','${teamName.replace(/'/g,"\\'")}')"><div><div class="roster-player-name">${p.name}</div><div class="roster-player-pos">#${p.num} · ${p.pos}</div></div><span style="color:#378ADD;font-size:16px">›</span></div>`).join("")}`;}catch(e){main.innerHTML=`<button class="stats-back" onclick="showTeamGrid()">← All teams</button><div style="color:#f87171;font-size:13px;padding:20px 0">Could not load roster.</div>`;}}
@@ -1041,24 +941,10 @@
     async function searchPlayer(){const val=document.getElementById("stats-search").value.trim();if(val.length>=2)fetchStatsSuggestions(val);}
 
     // ── Odds ──────────────────────────────────────────────
-    const BOOK_LINKS={"draftkings":"https://www.draftkings.com/sportsbook","fanduel":"https://www.fanduel.com/sportsbook","betmgm":"https://www.betmgm.com/sports","bet365":"https://www.bet365.com","williamhill":"https://www.williamhill.com/us","caesars":"https://www.caesars.com/sportsbook","hardrockbet":"https://www.hardrockbet.com","novig":"https://www.novig.com","betonlineag":"https://www.betonline.ag","mybookieag":"https://www.mybookie.ag","bovada":"https://www.bovada.lv","pointsbetus":"https://www.pointsbet.com","unibet_us":"https://www.unibet.com","espnbet":"https://www.espnbet.com","fliff":"https://www.getfliff.com"};
-    const BOOK_NAMES={"draftkings":"DK","fanduel":"FD","betmgm":"MGM","bet365":"365","williamhill":"WmHill","caesars":"Czrs","hardrockbet":"HardRk","novig":"NoVig","betonlineag":"BOL","mybookieag":"MyBkie","bovada":"Bovada","pointsbetus":"PtsBet","unibet_us":"Unibet","espnbet":"ESPN","fliff":"Fliff"};
-    const ALL_BOOKS=Object.keys(BOOK_LINKS);
-    const SPORTS=["baseball_mlb","icehockey_nhl","basketball_nba","americanfootball_nfl"];
-    const SPORT_LABELS={"baseball_mlb":"MLB","icehockey_nhl":"NHL","basketball_nba":"NBA","americanfootball_nfl":"NFL"};
-    const NHL_ABBREVS={"Anaheim Ducks":"ANA","Boston Bruins":"BOS","Buffalo Sabres":"BUF","Calgary Flames":"CGY","Carolina Hurricanes":"CAR","Chicago Blackhawks":"CHI","Colorado Avalanche":"COL","Columbus Blue Jackets":"CBJ","Dallas Stars":"DAL","Detroit Red Wings":"DET","Edmonton Oilers":"EDM","Florida Panthers":"FLA","Los Angeles Kings":"LAK","Minnesota Wild":"MIN","Montreal Canadiens":"MTL","Nashville Predators":"NSH","New Jersey Devils":"NJD","New York Islanders":"NYI","New York Rangers":"NYR","Ottawa Senators":"OTT","Philadelphia Flyers":"PHI","Pittsburgh Penguins":"PIT","San Jose Sharks":"SJS","Seattle Kraken":"SEA","St. Louis Blues":"STL","Tampa Bay Lightning":"TBL","Toronto Maple Leafs":"TOR","Utah Hockey Club":"UTA","Vancouver Canucks":"VAN","Vegas Golden Knights":"VGK","Washington Capitals":"WSH","Winnipeg Jets":"WPG"};
-    const NHL_TEAM_IDS={"ANA":24,"BOS":6,"BUF":7,"CGY":20,"CAR":12,"CHI":16,"COL":21,"CBJ":29,"DAL":25,"DET":17,"EDM":22,"FLA":13,"LAK":26,"MIN":30,"MTL":8,"NSH":18,"NJD":1,"NYI":2,"NYR":3,"OTT":9,"PHI":4,"PIT":5,"SJS":28,"SEA":55,"STL":19,"TBL":14,"TOR":10,"UTA":59,"VAN":23,"VGK":54,"WSH":15,"WPG":52};
-    const MLB_TEAM_IDS={"Arizona Diamondbacks":109,"Atlanta Braves":144,"Baltimore Orioles":110,"Boston Red Sox":111,"Chicago Cubs":112,"Chicago White Sox":145,"Cincinnati Reds":113,"Cleveland Guardians":114,"Colorado Rockies":115,"Detroit Tigers":116,"Houston Astros":117,"Kansas City Royals":118,"Los Angeles Angels":108,"Los Angeles Dodgers":119,"Miami Marlins":146,"Milwaukee Brewers":158,"Minnesota Twins":142,"New York Mets":121,"New York Yankees":147,"Oakland Athletics":133,"Philadelphia Phillies":143,"Pittsburgh Pirates":134,"San Diego Padres":135,"San Francisco Giants":137,"Seattle Mariners":136,"St. Louis Cardinals":138,"Tampa Bay Rays":139,"Texas Rangers":140,"Toronto Blue Jays":141,"Washington Nationals":120};
-    const NHL_CATEGORIES={"Goals":["player_goal_scorer_first","player_goal_scorer_last","player_goal_scorer_anytime","player_goals","player_goals_alternate"],"Assists":["player_assists","player_assists_alternate"],"Points":["player_points","player_points_alternate","player_power_play_points","player_power_play_points_alternate"],"Shots & Defense":["player_shots_on_goal","player_shots_on_goal_alternate","player_blocked_shots","player_blocked_shots_alternate"]};
-    const MLB_CATEGORIES={"Hitting":["batter_home_runs","batter_home_runs_alternate","batter_hits","batter_hits_alternate","batter_total_bases","batter_total_bases_alternate","batter_rbis","batter_rbis_alternate","batter_runs_scored","batter_stolen_bases","batter_walks","batter_strikeouts"],"Pitching":["pitcher_strikeouts","pitcher_strikeouts_alternate","pitcher_hits_allowed","pitcher_hits_allowed_alternate","pitcher_walks","pitcher_walks_alternate","pitcher_earned_runs"]};
-    const PROP_LINE_LABELS={"player_goal_scorer_first":"First goal scorer","player_goal_scorer_last":"Last goal scorer","player_goal_scorer_anytime":"Anytime goal scorer","player_goals":"Goals o/u","player_goals_alternate":"Goals (alt)","player_assists":"Assists o/u","player_assists_alternate":"Assists (alt)","player_points":"Points o/u","player_points_alternate":"Points (alt)","player_power_play_points":"PP points","player_power_play_points_alternate":"PP points (alt)","player_shots_on_goal":"Shots o/u","player_shots_on_goal_alternate":"Shots (alt)","player_blocked_shots":"Blocked shots o/u","player_blocked_shots_alternate":"Blocked shots (alt)","batter_home_runs":"Home runs o/u","batter_home_runs_alternate":"Home runs (alt)","batter_hits":"Hits o/u","batter_hits_alternate":"Hits (alt)","batter_total_bases":"Total bases o/u","batter_total_bases_alternate":"Total bases (alt)","batter_rbis":"RBIs o/u","batter_rbis_alternate":"RBIs (alt)","batter_runs_scored":"Runs scored","batter_stolen_bases":"Stolen bases","batter_walks":"Walks","batter_strikeouts":"Batter K's","pitcher_strikeouts":"Pitcher K's o/u","pitcher_strikeouts_alternate":"Pitcher K's (alt)","pitcher_hits_allowed":"Hits allowed o/u","pitcher_hits_allowed_alternate":"Hits allowed (alt)","pitcher_walks":"Walks allowed o/u","pitcher_walks_alternate":"Walks allowed (alt)","pitcher_earned_runs":"Earned runs"};
-
     let allGames=[],currentFilter="all",goalieCache={},nhlH2HCache={},mlbGamesCache=null,mlbPitcherCache={},mlbH2HCache={},propsCache={};
 
-    function fmtOdds(d){return d>=2.0?"+"+Math.round((d-1)*100):"-"+Math.round(100/(d-1));}
     function getBestBook(o){return o.reduce((b,x)=>x.price>b.price?x:b);}
     function isSpikeOdds(o){const p=o.map(x=>x.price),b=Math.max(...p),r=p.filter(x=>x!==b),a=r.reduce((s,x)=>s+x,0)/r.length;return b>=2.0&&(b-1)*100>=300&&(b/a)>=3;}
-    function getBookLink(k){return BOOK_LINKS[k]||"#";}
     function hasSpike(pd){for(const m of Object.values(pd))for(const e of Object.values(m)){const p=Object.values(e.odds).filter(v=>typeof v==="number");if(p.length<2)continue;const b=Math.max(...p),r=p.filter(x=>x!==b),a=r.reduce((s,x)=>s+x,0)/r.length,bA=b>=2?(b-1)*100:100/(1-b);if(bA>=200&&(b/a)>=2.5)return true;}return false;}
     function getBestOdds(pd){let b=-Infinity;for(const m of Object.values(pd))for(const e of Object.values(m)){const p=Object.values(e.odds).filter(v=>typeof v==="number");if(!p.length)continue;const mx=Math.max(...p);if(mx>b)b=mx;}return b>-Infinity?b:null;}
     function parseProps(data,cats){const r={};if(!data?.bookmakers)return r;data.bookmakers.forEach(book=>{book.markets?.forEach(mkt=>{const k=mkt.key,cat=Object.entries(cats).find(([,v])=>v.includes(k))?.[0];if(!cat)return;mkt.outcomes?.forEach(o=>{const pl=o.description||o.name,pt=o.point??o.handicap??null,lk=pt!=null?`${k}__${pt}`:k,ll=pt!=null?(o.name==="Over"||o.name==="Yes"?`o${pt}`:`u${pt}`):null;if(!r[pl])r[pl]={};if(!r[pl][cat])r[pl][cat]={};if(!r[pl][cat][lk])r[pl][cat][lk]={mkt:k,label:ll,odds:{}};r[pl][cat][lk].odds[book.key]=o.price;});});});return r;}
@@ -1128,7 +1014,8 @@
         for(const sport of SPORTS){const r=await fetch(`https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${API_KEY}&regions=us,us2&markets=h2h&oddsFormat=decimal`);if(!r.ok)throw new Error("API error "+r.status);const games=await r.json();games.forEach(g=>{g.bookmakers=g.bookmakers.filter(b=>ALL_BOOKS.includes(b.key));if(g.bookmakers.length>0)fresh.push({...g,sport});});}
         allGames=fresh;
         try{sessionStorage.setItem(CACHE_KEY,JSON.stringify({timestamp:Date.now(),games:allGames}));}catch(e){}
-        renderFiltered();arbOpportunities=findArbs(allGames);
+        renderFiltered();
+        arbOpportunities=findArbs(allGames);
         const tierLabels={free:"Manual refresh",bettor:"Auto-refreshing every 2 min",sharp:"Auto-refreshing every 60s",edge:"Auto-refreshing every 30s"};
         sub.innerHTML=`<span class="live-dot"></span>Live odds · <span class="refresh-badge">${tierLabels[currentTier]||"Manual"}</span> · <a href="#" onclick="forceRefresh(event)" style="color:#378ADD">Refresh now</a>`;
       }catch(err){app.innerHTML=`<div class="error">Could not load odds.<br><small>${err.message}</small></div>`;}
