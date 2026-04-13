@@ -1070,12 +1070,10 @@
 
   function showTeamGrid(){
     const teams=statsSport==="nhl"?NHL_TEAMS:MLB_TEAMS;
-    const league=statsSport==="nhl"?"nhl":"mlb";
     const sport=statsSport==="nhl"?"icehockey_nhl":"baseball_mlb";
     document.getElementById("stats-main").innerHTML=`<div style="font-size:11px;color:#555;margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;font-weight:700">Select a team</div><div class="team-grid">${teams.map(t=>{
-      const id=ESPN_LOGOS[t.name];
-      const logoHtml=id?`<img src="https://a.espncdn.com/i/teamlogos/${league}/500/${id}.png" width="40" height="40" style="object-fit:contain;margin-bottom:4px" onerror="this.style.display='none'">`:`<div class="team-card-abbrev">${t.abbrev}</div>`;
-      return`<div class="team-card" onclick="showRoster('${t.abbrev}','${t.name.replace(/'/g,"\\'")}',${t.id||0})">${logoHtml}<div class="team-card-name">${t.name}</div></div>`;
+      const logo=teamLogo(t.name,sport,40);
+      return`<div class="team-card" onclick="showRoster('${t.abbrev}','${t.name.replace(/'/g,"\\'")}',${t.id||0})">${logo||`<div class="team-card-abbrev">${t.abbrev}</div>`}<div class="team-card-name">${t.name}</div></div>`;
     }).join("")}</div>`;
   }
 
