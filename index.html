@@ -560,17 +560,26 @@
       updatePricingBtns();
     }
 
-    function updatePricingBtns() {
+  function updatePricingBtns() {
       const rank = { free:0, bettor:1, sharp:2, edge:3 };
       ["bettor","sharp","edge"].forEach(tier => {
         const btn = document.getElementById(tier+"-btn");
         if (!btn) return;
-        if (!currentUser) { btn.textContent = `Upgrade to ${cap(tier)}`; btn.disabled = false; return; }
-        if (currentTier === tier) { btn.textContent = "Current plan"; btn.disabled = true; return; }
-        btn.textContent = `Upgrade to ${cap(tier)}`; btn.disabled = false;
+        if (!currentUser) { btn.textContent = `Get started`; btn.disabled = false; return; }
+        if (currentTier === tier) { btn.textContent = "Current plan ✓"; btn.disabled = true; return; }
+        if (rank[currentTier] > rank[tier]) {
+          btn.textContent = "Switch to this plan"; btn.disabled = false; return;
+        }
+        if (rank[currentTier] < rank[tier]) {
+          btn.textContent = `Upgrade to ${cap(tier)}`; btn.disabled = false; return;
+        }
       });
       const fb = document.getElementById("free-btn");
-      if (fb) { fb.textContent = currentUser ? (currentTier==="free"?"Current plan":"Downgrade") : "Get started free"; fb.disabled = currentUser && currentTier==="free"; }
+      if (fb) {
+        if (!currentUser) { fb.textContent = "Get started free"; fb.disabled = false; }
+        else if (currentTier === "free") { fb.textContent = "Current plan ✓"; fb.disabled = true; }
+        else { fb.textContent = "Switch to free"; fb.disabled = false; }
+      }
     }
 
     function cap(s) { return s.charAt(0).toUpperCase()+s.slice(1); }
