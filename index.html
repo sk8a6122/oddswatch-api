@@ -859,8 +859,18 @@
     }
 
     // ── Nuke ─────────────────────────────────────────────
-   function nukeIcon(size) {
-      return `<span style="font-size:${size}px;filter:sepia(1) saturate(5) hue-rotate(5deg)">☢️</span>`;
+   function nukeIcon(size) {function nukeIcon(size) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="50" r="50" fill="#f59e0b"/>
+    <path d="M50 50 L15 82 A42 42 0 0 1 15 18 Z" fill="#1a1a1a"/>
+    <path d="M50 50 L85 18 A42 42 0 0 1 85 82 Z" fill="#1a1a1a"/>
+    <path d="M50 50 L15 18 A42 42 0 0 1 50 8 Z" fill="#f59e0b"/>
+    <path d="M50 50 L50 8 A42 42 0 0 1 85 18 Z" fill="#f59e0b"/>
+    <path d="M50 50 L85 82 A42 42 0 0 1 15 82 Z" fill="#f59e0b"/>
+    <circle cx="50" cy="50" r="13" fill="#f59e0b"/>
+    <circle cx="50" cy="50" r="8" fill="#1a1a1a"/>
+  </svg>`;
+}
     }
         <circle cx="50" cy="50" r="50" fill="#f59e0b"/>
         <path d="M50 50 L15 82 A42 42 0 0 1 15 18 Z" fill="#111"/>
