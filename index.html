@@ -712,17 +712,7 @@
     if(!id)return"";
     return`<img src="https://a.espncdn.com/i/teamlogos/${league}/500/${id}.png" width="${size}" height="${size}" style="object-fit:contain;vertical-align:middle;border-radius:3px;flex-shrink:0" onerror="this.style.display='none'">`;
   }
- const NHL_CDN_OVERRIDES={
-    "Seattle Kraken":"https://assets.nhle.com/logos/nhl/svg/SEA_light.svg",
-    "Utah Mammoth":"https://assets.nhle.com/logos/nhl/svg/UTA_light.svg"
-  };
-  function teamLogo(name,sport,size=20){
-    if(NHL_CDN_OVERRIDES[name])return`<img src="${NHL_CDN_OVERRIDES[name]}" width="${size}" height="${size}" style="object-fit:contain;vertical-align:middle;border-radius:3px;flex-shrink:0" onerror="this.style.display='none'">`;
-    const id=ESPN_LOGOS[name],league=SPORT_ESPN[sport]||"nhl";
-    if(!id)return"";
-    return`<img src="https://a.espncdn.com/i/teamlogos/${league}/500/${id}.png" width="${size}" height="${size}" style="object-fit:contain;vertical-align:middle;border-radius:3px;flex-shrink:0" onerror="this.style.display='none'">`;
-  }
-  }
+
 
   const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
   let currentUser=null,currentTier="free",authMode="signup",appliedPromo=null,autoRefreshTimer=null;
