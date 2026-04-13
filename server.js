@@ -158,11 +158,14 @@ app.post("/promo/validate", async (req, res) => {
 });
 
 // ── Get user profile ──────────────────────────────────
-app.get("/user/profile/:userId", async (req, res) => {
+app.patch("/user/profile/:userId", async (req, res) => {
   try {
-    const { data } = await supabase.from("profiles").select("tier,subscription_status,subscription_end").eq("id", req.params.userId).single();
-    res.json(data || { tier: "free" });
-  } catch (e) {
+    const { bankroll, unit_pct, betting_style, odds_format, bankroll_period } = req.body;
+    await supabase.from("profiles").update({
+      bankroll, unit_pct, betting_style, odds_format, bankroll_period
+    }).eq("id", req.params.userId);
+    res.json({ success: true });
+  } catch(e) {
     res.status(500).json({ error: e.message });
   }
 });
