@@ -615,7 +615,7 @@
       });
       const params = new URLSearchParams(window.location.search);
       if (params.get("success")==="true") {
-        setTimeout(()=>{ alert("🎉 Subscription active! Welcome to ChaseTheOdds."); window.history.replaceState({},""," window.location.pathname); },800);
+        setTimeout(()=>{ alert("🎉 Subscription active! Welcome to ChaseTheOdds."); window.history.replaceState({}, "", window.location.pathname); },800);
       }
       if (params.get("tipped")==="true") {
         setTimeout(()=>{ alert("❤️ Thank you so much for your support!"); window.history.replaceState({},"",window.location.pathname); },800);
