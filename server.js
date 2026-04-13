@@ -1,14 +1,173 @@
 const express = require("express");
 const cors = require("cors");
 const fetch = require("node-fetch");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+
+// Raw body needed for Stripe webhooks
+app.use("/webhook/stripe", express.raw({ type: "application/json" }));
 app.use(cors());
+app.use(express.json());
 
 const NHL_BASE = "https://api-web.nhle.com/v1";
 const NHL_STATS = "https://api.nhle.com/stats/rest/en";
 const MLB_BASE = "https://statsapi.mlb.com/api/v1";
 
+// ── Stripe checkout ───────────────────────────────────
+app.post("/checkout", async (req, res) => {
+  try {
+    const { priceId, userId, email, promoCode, tier } = req.body;
+
+    // Validate promo code if provided
+    let discountParams = {};
+    let promoData = null;
+
+    if (promoCode) {
+      const { data: promo } = await supabase
+        .from("promo_codes")
+        .select("*")
+        .eq("code", promoCode.toUpperCase())
+        .eq("active", true)
+        .single();
+
+      if (!promo) return res.status(400).json({ error: "Invalid promo code" });
+      if (promo.expires_at && new Date(promo.expires_at) < new Date()) return res.status(400).json({ error: "Promo code expired" });
+      if (promo.max_uses && promo.uses_count >= promo.max_uses) return res.status(400).json({ error: "Promo code used up" });
+      if (!promo.applicable_tiers.includes(tier)) return res.status(400).json({ error: "Promo code not valid for this tier" });
+
+      promoData = promo;
+
+      if (promo.discount_type === "percent") {
+        // Create Stripe coupon
+        const coupon = await stripe.coupons.create({
+          percent_off: promo.discount_value,
+          duration: "once"
+        });
+        discountParams = { discounts: [{ coupon: coupon.id }] };
+      } else if (promo.discount_type === "fixed") {
+        const coupon = await stripe.coupons.create({
+          amount_off: promo.discount_value * 100,
+          currency: "usd",
+          duration: "once"
+        });
+        discountParams = { discounts: [{ coupon: coupon.id }] };
+      } else if (promo.discount_type === "free_trial") {
+        discountParams = { subscription_data: { trial_period_days: promo.discount_value } };
+      }
+    }
+
+    // Create or get Stripe customer
+    let customerId;
+    const { data: profile } = await supabase.from("profiles").select("stripe_customer_id").eq("id", userId).single();
+
+    if (profile?.stripe_customer_id) {
+      customerId = profile.stripe_customer_id;
+    } else {
+      const customer = await stripe.customers.create({ email, metadata: { supabase_uid: userId } });
+      customerId = customer.id;
+      await supabase.from("profiles").update({ stripe_customer_id: customerId }).eq("id", userId);
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      payment_method_types: ["card"],
+      line_items: [{ price: priceId, quantity: 1 }],
+      mode: "subscription",
+      success_url: `https://sk8a6122.github.io/oddswatch-api?success=true&tier=${tier}`,
+      cancel_url: `https://sk8a6122.github.io/oddswatch-api?canceled=true`,
+      metadata: { userId, tier, promoCode: promoCode || "" },
+      ...discountParams
+    });
+
+    // Increment promo code uses
+    if (promoData) {
+      await supabase.from("promo_codes").update({ uses_count: promoData.uses_count + 1 }).eq("id", promoData.id);
+    }
+
+    res.json({ url: session.url });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── Stripe webhook ────────────────────────────────────
+app.post("/webhook/stripe", async (req, res) => {
+  const sig = req.headers["stripe-signature"];
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+  } catch (e) {
+    return res.status(400).send(`Webhook error: ${e.message}`);
+  }
+
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object;
+    const { userId, tier } = session.metadata;
+    await supabase.from("profiles").update({
+      tier,
+      stripe_subscription_id: session.subscription,
+      subscription_status: "active"
+    }).eq("id", userId);
+  }
+
+  if (event.type === "customer.subscription.deleted") {
+    const sub = event.data.object;
+    const { data: profile } = await supabase.from("profiles").select("id").eq("stripe_subscription_id", sub.id).single();
+    if (profile) {
+      await supabase.from("profiles").update({ tier: "free", subscription_status: "inactive" }).eq("id", profile.id);
+    }
+  }
+
+  res.json({ received: true });
+});
+
+// ── Validate promo code (public endpoint) ─────────────
+app.post("/promo/validate", async (req, res) => {
+  try {
+    const { code, tier } = req.body;
+    const { data: promo } = await supabase
+      .from("promo_codes")
+      .select("*")
+      .eq("code", code.toUpperCase())
+      .eq("active", true)
+      .single();
+
+    if (!promo) return res.json({ valid: false, message: "Invalid promo code" });
+    if (promo.expires_at && new Date(promo.expires_at) < new Date()) return res.json({ valid: false, message: "Promo code expired" });
+    if (promo.max_uses && promo.uses_count >= promo.max_uses) return res.json({ valid: false, message: "Promo code has been used up" });
+    if (!promo.applicable_tiers.includes(tier)) return res.json({ valid: false, message: "Code not valid for this tier" });
+
+    let description = "";
+    if (promo.discount_type === "percent") {
+      if (promo.discount_value === 100) description = "100% off — free!";
+      else description = `${promo.discount_value}% off`;
+    } else if (promo.discount_type === "fixed") {
+      description = `$${promo.discount_value} off`;
+    } else if (promo.discount_type === "free_trial") {
+      description = `${promo.discount_value} day free trial`;
+    }
+
+    res.json({ valid: true, discount_type: promo.discount_type, discount_value: promo.discount_value, description });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── Get user profile ──────────────────────────────────
+app.get("/user/profile/:userId", async (req, res) => {
+  try {
+    const { data } = await supabase.from("profiles").select("tier,subscription_status,subscription_end").eq("id", req.params.userId).single();
+    res.json(data || { tier: "free" });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── NHL endpoints ─────────────────────────────────────
 app.get("/goalie/:teamId/:season", async (req, res) => {
   try {
     const { teamId, season } = req.params;
@@ -32,8 +191,7 @@ app.get("/schedule/:abbrev/:season", async (req, res) => {
 
 app.get("/nhl/roster/:abbrev", async (req, res) => {
   try {
-    const { abbrev } = req.params;
-    const data = await fetch(`${NHL_BASE}/roster/${abbrev}/20252026`).then(r => r.json());
+    const data = await fetch(`${NHL_BASE}/roster/${req.params.abbrev}/20252026`).then(r => r.json());
     res.json(data);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -45,26 +203,22 @@ app.get("/nhl/player/:playerId", async (req, res) => {
       fetch(`${NHL_BASE}/player/${playerId}/landing`),
       fetch(`${NHL_BASE}/player/${playerId}/game-log/20252026/2`)
     ]);
-    const seasonData = await seasonRes.json();
-    const gameLogData = await gameLogRes.json();
-    res.json({ season: seasonData, gameLog: gameLogData });
+    res.json({ season: await seasonRes.json(), gameLog: await gameLogRes.json() });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.get("/nhl/search/:name", async (req, res) => {
   try {
-    const { name } = req.params;
-    const url = `https://search.d3.nhle.com/api/v1/search/player?culture=en-us&limit=5&q=${encodeURIComponent(name)}&active=true`;
-    const data = await fetch(url).then(r => r.json());
+    const data = await fetch(`https://search.d3.nhle.com/api/v1/search/player?culture=en-us&limit=5&q=${encodeURIComponent(req.params.name)}&active=true`).then(r => r.json());
     res.json(data);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── MLB endpoints ─────────────────────────────────────
 app.get("/mlb/roster/:teamId", async (req, res) => {
   try {
-    const { teamId } = req.params;
     const season = new Date().getFullYear();
-    const data = await fetch(`${MLB_BASE}/teams/${teamId}/roster?season=${season}&rosterType=active`).then(r => r.json());
+    const data = await fetch(`${MLB_BASE}/teams/${req.params.teamId}/roster?season=${season}&rosterType=active`).then(r => r.json());
     res.json(data);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -79,9 +233,8 @@ app.get("/mlb/games", async (req, res) => {
 
 app.get("/mlb/pitcher/:playerId", async (req, res) => {
   try {
-    const { playerId } = req.params;
     const season = new Date().getFullYear();
-    const data = await fetch(`${MLB_BASE}/people/${playerId}/stats?stats=season&season=${season}&group=pitching`).then(r => r.json());
+    const data = await fetch(`${MLB_BASE}/people/${req.params.playerId}/stats?stats=season&season=${season}&group=pitching`).then(r => r.json());
     res.json(data);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -106,10 +259,8 @@ app.get("/mlb/h2h/:awayId/:homeId", async (req, res) => {
     const data = await fetch(`${MLB_BASE}/schedule?sportId=1&season=${season}&teamId=${awayId}&opponent=${homeId}&gameType=R&hydrate=linescore,team`).then(r => r.json());
     const games = (data.dates || []).flatMap(d => d.games || []).filter(g => {
       const finished = g.status?.abstractGameState === "Final";
-      const awayTeamId = g.teams?.away?.team?.id;
-      const homeTeamId = g.teams?.home?.team?.id;
-      const correctMatchup = (String(awayTeamId) === String(awayId) && String(homeTeamId) === String(homeId)) || (String(awayTeamId) === String(homeId) && String(homeTeamId) === String(awayId));
-      return finished && correctMatchup;
+      const aId = g.teams?.away?.team?.id, hId = g.teams?.home?.team?.id;
+      return finished && ((String(aId)===String(awayId)&&String(hId)===String(homeId))||(String(aId)===String(homeId)&&String(hId)===String(awayId)));
     }).slice(-5);
     res.json({ games });
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -117,28 +268,26 @@ app.get("/mlb/h2h/:awayId/:homeId", async (req, res) => {
 
 app.get("/mlb/search/:name", async (req, res) => {
   try {
-    const { name } = req.params;
-    const data = await fetch(`${MLB_BASE}/people/search?names=${encodeURIComponent(name)}&sportId=1&active=true`).then(r => r.json());
+    const data = await fetch(`${MLB_BASE}/people/search?names=${encodeURIComponent(req.params.name)}&sportId=1&active=true`).then(r => r.json());
     res.json(data);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── Props endpoints ───────────────────────────────────
 app.get("/props/nhl/:gameId", async (req, res) => {
   try {
-    const { gameId } = req.params;
     const apiKey = process.env.ODDS_API_KEY;
     const markets = ["player_goal_scorer_first","player_goal_scorer_last","player_goal_scorer_anytime","player_goals","player_goals_alternate","player_assists","player_assists_alternate","player_points","player_points_alternate","player_power_play_points","player_power_play_points_alternate","player_shots_on_goal","player_shots_on_goal_alternate","player_blocked_shots","player_blocked_shots_alternate"].join(",");
-    const data = await fetch(`https://api.the-odds-api.com/v4/sports/icehockey_nhl/events/${gameId}/odds?apiKey=${apiKey}&regions=us,us2&markets=${markets}&oddsFormat=decimal`).then(r => r.json());
+    const data = await fetch(`https://api.the-odds-api.com/v4/sports/icehockey_nhl/events/${req.params.gameId}/odds?apiKey=${apiKey}&regions=us,us2&markets=${markets}&oddsFormat=decimal`).then(r => r.json());
     res.json(data);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.get("/props/mlb/:gameId", async (req, res) => {
   try {
-    const { gameId } = req.params;
     const apiKey = process.env.ODDS_API_KEY;
     const markets = ["batter_home_runs","batter_home_runs_alternate","batter_hits","batter_hits_alternate","batter_total_bases","batter_total_bases_alternate","batter_rbis","batter_rbis_alternate","batter_runs_scored","batter_stolen_bases","batter_walks","batter_strikeouts","pitcher_strikeouts","pitcher_strikeouts_alternate","pitcher_hits_allowed","pitcher_hits_allowed_alternate","pitcher_walks","pitcher_walks_alternate","pitcher_earned_runs"].join(",");
-    const data = await fetch(`https://api.the-odds-api.com/v4/sports/baseball_mlb/events/${gameId}/odds?apiKey=${apiKey}&regions=us,us2&markets=${markets}&oddsFormat=decimal`).then(r => r.json());
+    const data = await fetch(`https://api.the-odds-api.com/v4/sports/baseball_mlb/events/${req.params.gameId}/odds?apiKey=${apiKey}&regions=us,us2&markets=${markets}&oddsFormat=decimal`).then(r => r.json());
     res.json(data);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
