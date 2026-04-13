@@ -7,7 +7,6 @@ const { createClient } = require("@supabase/supabase-js");
 const app = express();
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
-// Raw body needed for Stripe webhooks
 app.use("/webhook/stripe", express.raw({ type: "application/json" }));
 app.use(cors());
 app.use(express.json());
@@ -15,54 +14,36 @@ app.use(express.json());
 const NHL_BASE = "https://api-web.nhle.com/v1";
 const NHL_STATS = "https://api.nhle.com/stats/rest/en";
 const MLB_BASE = "https://statsapi.mlb.com/api/v1";
+const SITE_URL = "https://sk8a6122.github.io/oddswatch-api";
 
 // ── Stripe checkout ───────────────────────────────────
 app.post("/checkout", async (req, res) => {
   try {
     const { priceId, userId, email, promoCode, tier } = req.body;
-
-    // Validate promo code if provided
     let discountParams = {};
     let promoData = null;
 
     if (promoCode) {
-      const { data: promo } = await supabase
-        .from("promo_codes")
-        .select("*")
-        .eq("code", promoCode.toUpperCase())
-        .eq("active", true)
-        .single();
-
+      const { data: promo } = await supabase.from("promo_codes").select("*").eq("code", promoCode.toUpperCase()).eq("active", true).single();
       if (!promo) return res.status(400).json({ error: "Invalid promo code" });
       if (promo.expires_at && new Date(promo.expires_at) < new Date()) return res.status(400).json({ error: "Promo code expired" });
       if (promo.max_uses && promo.uses_count >= promo.max_uses) return res.status(400).json({ error: "Promo code used up" });
-      if (!promo.applicable_tiers.includes(tier)) return res.status(400).json({ error: "Promo code not valid for this tier" });
-
+      if (!promo.applicable_tiers.includes(tier)) return res.status(400).json({ error: "Code not valid for this tier" });
       promoData = promo;
 
       if (promo.discount_type === "percent") {
-        // Create Stripe coupon
-        const coupon = await stripe.coupons.create({
-          percent_off: promo.discount_value,
-          duration: "once"
-        });
+        const coupon = await stripe.coupons.create({ percent_off: promo.discount_value, duration: "once" });
         discountParams = { discounts: [{ coupon: coupon.id }] };
       } else if (promo.discount_type === "fixed") {
-        const coupon = await stripe.coupons.create({
-          amount_off: promo.discount_value * 100,
-          currency: "usd",
-          duration: "once"
-        });
+        const coupon = await stripe.coupons.create({ amount_off: promo.discount_value * 100, currency: "usd", duration: "once" });
         discountParams = { discounts: [{ coupon: coupon.id }] };
       } else if (promo.discount_type === "free_trial") {
         discountParams = { subscription_data: { trial_period_days: promo.discount_value } };
       }
     }
 
-    // Create or get Stripe customer
     let customerId;
     const { data: profile } = await supabase.from("profiles").select("stripe_customer_id").eq("id", userId).single();
-
     if (profile?.stripe_customer_id) {
       customerId = profile.stripe_customer_id;
     } else {
@@ -76,16 +57,53 @@ app.post("/checkout", async (req, res) => {
       payment_method_types: ["card"],
       line_items: [{ price: priceId, quantity: 1 }],
       mode: "subscription",
-      success_url: `https://sk8a6122.github.io/oddswatch-api?success=true&tier=${tier}`,
-      cancel_url: `https://sk8a6122.github.io/oddswatch-api?canceled=true`,
+      success_url: `${SITE_URL}?success=true&tier=${tier}`,
+      cancel_url: `${SITE_URL}?canceled=true`,
       metadata: { userId, tier, promoCode: promoCode || "" },
       ...discountParams
     });
 
-    // Increment promo code uses
     if (promoData) {
       await supabase.from("promo_codes").update({ uses_count: promoData.uses_count + 1 }).eq("id", promoData.id);
     }
+
+    res.json({ url: session.url });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── Tip checkout ──────────────────────────────────────
+app.post("/tip", async (req, res) => {
+  try {
+    const { priceId, customAmount, email } = req.body;
+    let line_items;
+
+    if (customAmount) {
+      const amount = Math.round(parseFloat(customAmount) * 100);
+      if (amount < 100) return res.status(400).json({ error: "Minimum tip is $1" });
+      if (amount > 100000) return res.status(400).json({ error: "Maximum tip is $1,000" });
+      line_items = [{
+        price_data: {
+          currency: "usd",
+          product_data: { name: "Support the Creator ❤️", description: "Thank you for supporting ChaseTheOdds!" },
+          unit_amount: amount
+        },
+        quantity: 1
+      }];
+    } else {
+      line_items = [{ price: priceId, quantity: 1 }];
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items,
+      mode: "payment",
+      success_url: `${SITE_URL}?tipped=true`,
+      cancel_url: `${SITE_URL}`,
+      customer_email: email || undefined
+    });
 
     res.json({ url: session.url });
   } catch (e) {
@@ -101,17 +119,21 @@ app.post("/webhook/stripe", async (req, res) => {
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (e) {
+    console.error("Webhook error:", e.message);
     return res.status(400).send(`Webhook error: ${e.message}`);
   }
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
-    const { userId, tier } = session.metadata;
-    await supabase.from("profiles").update({
-      tier,
-      stripe_subscription_id: session.subscription,
-      subscription_status: "active"
-    }).eq("id", userId);
+    if (session.mode === "subscription") {
+      const { userId, tier } = session.metadata;
+      console.log(`Updating tier for ${userId} to ${tier}`);
+      await supabase.from("profiles").update({
+        tier,
+        stripe_subscription_id: session.subscription,
+        subscription_status: "active"
+      }).eq("id", userId);
+    }
   }
 
   if (event.type === "customer.subscription.deleted") {
@@ -125,39 +147,38 @@ app.post("/webhook/stripe", async (req, res) => {
   res.json({ received: true });
 });
 
-// ── Validate promo code (public endpoint) ─────────────
+// ── Promo validate ────────────────────────────────────
 app.post("/promo/validate", async (req, res) => {
   try {
     const { code, tier } = req.body;
-    const { data: promo } = await supabase
-      .from("promo_codes")
-      .select("*")
-      .eq("code", code.toUpperCase())
-      .eq("active", true)
-      .single();
-
+    const { data: promo } = await supabase.from("promo_codes").select("*").eq("code", code.toUpperCase()).eq("active", true).single();
     if (!promo) return res.json({ valid: false, message: "Invalid promo code" });
     if (promo.expires_at && new Date(promo.expires_at) < new Date()) return res.json({ valid: false, message: "Promo code expired" });
-    if (promo.max_uses && promo.uses_count >= promo.max_uses) return res.json({ valid: false, message: "Promo code has been used up" });
+    if (promo.max_uses && promo.uses_count >= promo.max_uses) return res.json({ valid: false, message: "Promo code used up" });
     if (!promo.applicable_tiers.includes(tier)) return res.json({ valid: false, message: "Code not valid for this tier" });
-
     let description = "";
-    if (promo.discount_type === "percent") {
-      if (promo.discount_value === 100) description = "100% off — free!";
-      else description = `${promo.discount_value}% off`;
-    } else if (promo.discount_type === "fixed") {
-      description = `$${promo.discount_value} off`;
-    } else if (promo.discount_type === "free_trial") {
-      description = `${promo.discount_value} day free trial`;
-    }
-
+    if (promo.discount_type === "percent") description = promo.discount_value === 100 ? "100% off — free!" : `${promo.discount_value}% off`;
+    else if (promo.discount_type === "fixed") description = `$${promo.discount_value} off`;
+    else if (promo.discount_type === "free_trial") description = `${promo.discount_value} day free trial`;
     res.json({ valid: true, discount_type: promo.discount_type, discount_value: promo.discount_value, description });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-// ── Get user profile ──────────────────────────────────
+// ── Feedback ──────────────────────────────────────────
+app.post("/feedback", async (req, res) => {
+  try {
+    const { userId, email, type, message } = req.body;
+    if (!message?.trim()) return res.status(400).json({ error: "Message is required" });
+    await supabase.from("feedback").insert({ user_id: userId || null, email: email || null, type: type || "feedback", message: message.trim() });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── User profile ──────────────────────────────────────
 app.patch("/user/profile/:userId", async (req, res) => {
   try {
     const { bankroll, unit_pct, betting_style, odds_format, bankroll_period } = req.body;
@@ -165,7 +186,16 @@ app.patch("/user/profile/:userId", async (req, res) => {
       bankroll, unit_pct, betting_style, odds_format, bankroll_period
     }).eq("id", req.params.userId);
     res.json({ success: true });
-  } catch(e) {
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get("/user/profile/:userId", async (req, res) => {
+  try {
+    const { data } = await supabase.from("profiles").select("tier,subscription_status,stripe_customer_id,bankroll,unit_pct,betting_style,odds_format,bankroll_period").eq("id", req.params.userId).single();
+    res.json(data || { tier: "free" });
+  } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
@@ -276,7 +306,7 @@ app.get("/mlb/search/:name", async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Props endpoints ───────────────────────────────────
+// ── Props ─────────────────────────────────────────────
 app.get("/props/nhl/:gameId", async (req, res) => {
   try {
     const apiKey = process.env.ODDS_API_KEY;
