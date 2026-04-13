@@ -859,8 +859,17 @@
     }
 
     // ── Nuke ─────────────────────────────────────────────
-    function nukeIcon(size) {
-      return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#f59e0b"/><circle cx="50" cy="50" r="13" fill="#111"/><path d="M50 37 L24 82 L50 64 Z" fill="#111"/><path d="M50 37 L76 82 L50 64 Z" fill="#f59e0b"/><path d="M50 64 L24 82 L76 82 Z" fill="#f59e0b"/><path d="M37 50 L5 32 L28 50 Z" fill="#f59e0b"/><path d="M37 50 L5 32 L16 60 Z" fill="#111"/><path d="M63 50 L95 32 L72 50 Z" fill="#f59e0b"/><path d="M63 50 L95 32 L84 60 Z" fill="#111"/></svg>`;
+   function nukeIcon(size) {
+      return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="50" fill="#f59e0b"/>
+        <path d="M50 50 L15 82 A42 42 0 0 1 15 18 Z" fill="#111"/>
+        <path d="M50 50 L85 18 A42 42 0 0 1 85 82 Z" fill="#111"/>
+        <path d="M50 50 L50 8 A42 42 0 0 1 85 18 Z" fill="#f59e0b"/>
+        <path d="M50 50 L85 82 A42 42 0 0 1 15 82 Z" fill="#f59e0b"/>
+        <path d="M50 50 L15 18 A42 42 0 0 1 50 8 Z" fill="#f59e0b"/>
+        <circle cx="50" cy="50" r="12" fill="#f59e0b"/>
+        <circle cx="50" cy="50" r="7" fill="#111"/>
+      </svg>`;
     }
 
     function findAllSpikes(games) {
