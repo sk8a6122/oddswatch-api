@@ -201,6 +201,35 @@ app.get("/user/profile/:userId", async (req, res) => {
 });
 
 // ── NHL endpoints ─────────────────────────────────────
+app.get("/bets/:userId", async (req, res) => {
+  try {
+    const { data } = await supabase.from("bets").select("*").eq("user_id", req.params.userId).order("created_at", { ascending: false });
+    res.json(data || []);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post("/bets", async (req, res) => {
+  try {
+    const { userId, sport, game, bet_type, odds, amount, units, notes, result, profit } = req.body;
+    const { data } = await supabase.from("bets").insert({ user_id: userId, sport, game, bet_type, odds, amount, units, notes, result, profit }).select().single();
+    res.json(data);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.patch("/bets/:betId", async (req, res) => {
+  try {
+    const { result, profit } = req.body;
+    await supabase.from("bets").update({ result, profit }).eq("id", req.params.betId);
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete("/bets/:betId", async (req, res) => {
+  try {
+    await supabase.from("bets").delete().eq("id", req.params.betId);
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
 app.get("/goalie/:teamId/:season", async (req, res) => {
   try {
     const { teamId, season } = req.params;
